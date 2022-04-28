@@ -1,0 +1,34 @@
+{
+   "values":[
+      {
+         "pk":"1",
+         "model":"2",
+         "codename":"3",
+         "name":"4",
+         "content_type\n":"5"
+      },
+      {
+         "pk":"10",
+         "model":"52",
+         "codename":"23",
+         "name":"46",
+         "content_type\n":"75"
+      }
+   ],
+      "data":[
+      {
+         "pk":"31",
+         "model":"32",
+         "codename":"33",
+         "name":"34",
+         "content_type\n":"35"
+      },
+      {
+         "pk":"130",
+         "model":"532",
+         "codename":"233",
+         "name":"436",
+         "content_type\n":"735"
+      }
+   ]
+}
