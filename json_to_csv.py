@@ -12,7 +12,7 @@ class JSONtoCSV(AbstractConverter):
             case = False
 
 
-    def Write(self, file, output):
+    def writer(self, file, output):
         try:
             f= open(file, "w")
             f.write(output)

@@ -7,7 +7,7 @@ class AbstractConverter(abc.ABC):
         pass
 
    @abc.abstractmethod
-   def Write(self, output):
+   def writer(self, output):
        pass
 
    @abc.abstractmethod

@@ -13,7 +13,7 @@ class CSVtoJSON(AbstractConverter):
             print("This file probably does not exist")
 
 
-    def Write(self, file, output):
+    def writer(self, file, output):
         try:
             f= open(file, "w")
             f.write(output)

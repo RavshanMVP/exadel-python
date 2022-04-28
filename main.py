@@ -9,7 +9,7 @@ if (ext == ".csv"):
         input = c.read(name+ext)
         if (input):
             result = c.convert(input)
-            c.Write("output.json",result)
+            c.writer("output.json",result)
             print("csv has been converted to json")
         else: print("File probably does not exist")
     except:
@@ -22,7 +22,7 @@ elif (ext ==".json"):
         input = eval(input)
         if (input):
             result = j.convert(name + ext)
-            j.Write("output.csv", result)
+            j.writer("output.csv", result)
             print("json has been converted to csv")
         else: print("File probably does not exist")
     except:
