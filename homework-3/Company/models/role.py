@@ -1,7 +1,16 @@
 from django.db import models
 
 class Role(models.Model):
-    role = models.CharField("User or Company", max_length=7)
+
+    USER = 'user'
+    COMPANY = 'Comp'
+
+    ROLE_CHOICES = [
+        (USER, 'User'),
+        (COMPANY, 'Company'),
+    ]
+
+    role = models.CharField(max_length=4, choices= ROLE_CHOICES, default=USER, null=False)
 
     def __str__(self):
         return self.role
