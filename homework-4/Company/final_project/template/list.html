@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All users</title>
+</head>
+<body>
+
+<h1>All users</h1>
+<ul>
+{% for user in object_list %}
+    <li>{{ user.fullname}}</li>
+{% empty %}
+    <li>No users yet.</li>
+{% endfor %}
+</ul>
+
+</body>
+</html>
