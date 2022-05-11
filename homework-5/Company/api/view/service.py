@@ -1,4 +1,4 @@
-from rest_framework.decorators import api_view
+
 from rest_framework.response import Response
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
@@ -9,24 +9,11 @@ sys.path.append("...")
 from api.serializers.service import ServiceSerializer, Service
 
 
-@api_view (['POST','GET'])
-def CreateService(request):
-    if request.method == "POST":
-        serializer = ServiceSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,status=status.HTTP_201_CREATED)
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    if request.method == 'GET':
-        services = Service.objects.all()
-        serializer = ServiceSerializer(services, many=True)
-        return Response(serializer.data)
-
 class ServiceDetails(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         queryset = Service.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
-        serializer = ServiceSerializer(user)
+        service = get_object_or_404(queryset, pk=pk)
+        serializer = ServiceSerializer(service)
         return Response(serializer.data)
 
 
@@ -42,3 +29,15 @@ class ServiceDetails(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request):
+        queryset = Service.objects.all()
+        serializer = ServiceSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self,request):
+        data = request.data
+        model = Service(fullname = data['fullname'], phone_number = data['phone_number'], email = data ['email'], role_id = data['role_id'])
+        model.save()
+        serializer = ServiceSerializer(model)
+        return Response(serializer.data)

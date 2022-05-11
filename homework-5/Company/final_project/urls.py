@@ -21,7 +21,6 @@ sys.path.append("..")
 from api.urls import request, user, role, review, request_status, service
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('request/', include(request)),
     path('user/', include(user)),
     path('role/', include(role)),

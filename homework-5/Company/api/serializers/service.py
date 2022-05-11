@@ -5,5 +5,10 @@ from core.models.service import Service
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
-        fields = ['id', 'name', 'cost','company_id']
+        fields = [ 'name', 'cost','company_id']
+
+        company_id = serializers.SerializerMethodField()
+
+        def get_role(self,service):
+            return service.company_id.fullname
 

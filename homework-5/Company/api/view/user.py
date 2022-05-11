@@ -1,37 +1,21 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.views import APIView
+from rest_framework.response import Response
+
 
 import sys
 sys.path.append("...")
 from api.serializers.user import UserSerializer, User
-@api_view (['GET'])
-def ListUser(request):
-    if request.method == "GET":
-        users  = User.objects.all()
-        serializer = UserSerializer(users,many= True)
-        return Response(serializer.data )
-
-@api_view (['POST','GET'])
-def CreateUser(request):
-    if request.method == "POST":
-        serializer = UserSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,status=status.HTTP_201_CREATED)
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    if request.method == 'GET':
-        users = User.objects.all()
-        serializer = UserSerializer(users, many=True)
+sys.path.clear()
+class UserDetails(viewsets.ViewSet):
+    def retrieve(self, request, pk=None):
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, pk=pk)
+        serializer = UserSerializer(user)
         return Response(serializer.data)
 
-class UserDetails(APIView):
-    def get_data(self,pk,format = None):
-        try:
-            return User.objects.get(pk = pk)
-        except:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+
     def delete(self,request,pk,format = None):
         model = self.get_data(pk)
         model.delete()
@@ -45,7 +29,14 @@ class UserDetails(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request,pk, format = None):
-        model = self.get_data(pk)
+    def list(self, request):
+        queryset = User.objects.all()
+        serializer = UserSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self,request):
+        data = request.data
+        model = User(fullname = data['fullname'], phone_number = data['phone_number'], email = data ['email'], role_id = data['role_id'])
+        model.save()
         serializer = UserSerializer(model)
         return Response(serializer.data)
