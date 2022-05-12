@@ -1,7 +1,7 @@
 from rest_framework import serializers
 import sys
 sys.path.append("....")
-from core.models.review import Review
+from core.models import Review
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 import sys
 sys.path.append("....")
-from core.models.request import Request
+from core.models import Request
 sys.path.clear()
 class RequestSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,7 +1,7 @@
 from django.urls import path, include
 import sys
 
-from api.view.request import RequestDetails
+from api.view import RequestDetails
 
 urlpatterns = [
     path("<pk>", RequestDetails.as_view({"get":'retrieve','delete':'delete','put':'put','post':'post'})),

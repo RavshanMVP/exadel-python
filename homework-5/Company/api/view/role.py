@@ -3,7 +3,8 @@ from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 
-from api.serializers.role import RoleSerializer, Role
+from api.serializers.role import RoleSerializer
+from core.models import Role
 
 class RoleDetails(viewsets.ViewSet):
     def retrieve(self, request, pk=None):

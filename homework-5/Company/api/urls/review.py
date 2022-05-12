@@ -1,5 +1,5 @@
 from django.urls import path, include
-from api.view.review import ReviewDetails
+from api.view import ReviewDetails
 
 urlpatterns = [
     path("<pk>", ReviewDetails.as_view({"get":'retrieve','delete':'delete','put':'put','post':'post'})),

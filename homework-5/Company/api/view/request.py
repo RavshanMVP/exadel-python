@@ -2,7 +2,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
-from api.serializers.request import RequestSerializer, Request
+from api.serializers import RequestSerializer
+from core.models import Request
 
 class RequestDetails(viewsets.ViewSet):
     def retrieve(self, request, pk=None):

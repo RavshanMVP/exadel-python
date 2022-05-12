@@ -1,5 +1,5 @@
 from django.urls import path, include
-from api.view.request_status import RequestStatusDetails
+from api.view import RequestStatusDetails
 
 urlpatterns = [
     path("<pk>", RequestStatusDetails.as_view({"get":'retrieve','delete':'delete','put':'put','list':'list','post':'post'})),

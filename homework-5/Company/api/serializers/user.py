@@ -1,7 +1,7 @@
 from rest_framework import serializers
 import sys
 sys.path.append("....")
-from core.models.user import User
+from core.models import User
 sys.path.clear()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

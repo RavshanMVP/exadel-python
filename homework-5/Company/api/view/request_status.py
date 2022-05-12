@@ -3,7 +3,8 @@ from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 
-from api.serializers.request_status import RequestStatusSerializer, RequestStatus
+from api.serializers import RequestStatusSerializer
+from core.models import RequestStatus
 
 class RequestStatusDetails(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
