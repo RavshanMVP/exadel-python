@@ -1,6 +1,6 @@
 from django.urls import path, include
 import sys
-sys.path.append("....")
+
 from api.view.request import RequestDetails
 
 urlpatterns = [

@@ -5,15 +5,15 @@ from core.models.review import Review
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['rating', 'feedback', 'created_at','request_id ','user_id','service_id']
+        fields = ['rating', 'feedback', 'created_at','request ','user','service']
 
-        request_id = serializers.SerializerMethodField()
-        user_id = serializers.SerializerMethodField()
-        service_id = serializers.SerializerMethodField()
+        request = serializers.SerializerMethodField()
+        user = serializers.SerializerMethodField()
+        service = serializers.SerializerMethodField()
 
         def get_user(self,review):
-            return review.user_id.fullname
+            return review.user.fullname
         def get_service(self,review):
-            return review.service_id.role
+            return review.service.role
         def get_request(self,review):
-            return review.request_id.role
+            return review.request.role

@@ -3,11 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 
-
-import sys
-sys.path.append("...")
 from api.serializers.user import UserSerializer, User
-sys.path.clear()
 class UserDetails(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         queryset = User.objects.all()

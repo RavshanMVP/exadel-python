@@ -1,6 +1,4 @@
 from django.urls import path, include
-import sys
-sys.path.append("....")
 from api.view.review import ReviewDetails
 
 urlpatterns = [

@@ -6,19 +6,19 @@ sys.path.clear()
 class RequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Request
-        fields = [ 'address', 'created_at', 'area','cost_total','status_id','user_id','service_id']
+        fields = [ 'address', 'created_at', 'area','cost_total','status','user','service']
 
-        status_id = serializers.SerializerMethodField()
-        user_id = serializers.SerializerMethodField()
-        service_id = serializers.SerializerMethodField()
+        status = serializers.SerializerMethodField()
+        user = serializers.SerializerMethodField()
+        service = serializers.SerializerMethodField()
 
         def get_status(self, requests):
-            return requests.status_id.status
+            return requests.status.status
 
         def get_user(self, requests):
-            return requests.user_id.fullname
+            return requests.user.fullname
 
         def get_service(self, requests):
-            return requests.service_id.name
+            return requests.service.name
 
 

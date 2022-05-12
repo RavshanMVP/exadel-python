@@ -4,8 +4,6 @@ from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 
-import sys
-sys.path.append("...")
 from api.serializers.service import ServiceSerializer, Service
 
 

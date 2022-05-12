@@ -3,10 +3,7 @@ from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 
-import sys
-sys.path.append("...")
 from api.serializers.review import ReviewSerializer, Review
-sys.path.clear()
 
 class ReviewDetails(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
