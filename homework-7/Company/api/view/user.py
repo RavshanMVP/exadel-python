@@ -3,7 +3,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 
-from api.serializers.user import UserSerializer, User
+from api.serializers.user import UserSerializer
+from core.models import User
 class UserDetails(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         queryset = User.objects.all()
@@ -32,7 +33,7 @@ class UserDetails(viewsets.ViewSet):
 
     def post(self,request):
         data = request.data
-        model = User(fullname = data['fullname'], phone_number = data['phone_number'], email = data ['email'], role_id = data['role_id'])
+        model = User(fullname = data['fullname'], phone_number = data['phone_number'], email = data ['email'], role = data['role'], password = data['password'])
         model.save()
         serializer = UserSerializer(model)
         return Response(serializer.data)

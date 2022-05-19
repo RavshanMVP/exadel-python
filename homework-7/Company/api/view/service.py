@@ -36,7 +36,7 @@ class ServiceDetails(viewsets.ViewSet):
 
     def post(self,request):
         data = request.data
-        model = Service(fullname = data['fullname'], phone_number = data['phone_number'], email = data ['email'], role_id = data['role_id'])
+        model = Service(name = data['name'], cost = data['cost'], company = data['company'])
         model.save()
         serializer = ServiceSerializer(model)
         return Response(serializer.data)

@@ -9,7 +9,7 @@ class RequestDetails(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         queryset = Request.objects.all()
-        request= get_object_or_404(queryset, pk=pk)
+        request = get_object_or_404(queryset, pk=pk)
         serializer = RequestSerializer(request)
         return Response(serializer.data)
 
@@ -20,7 +20,6 @@ class RequestDetails(viewsets.ViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def put(self,request,pk,format = None):
-        model = self.get_data(pk)
         serializer = RequestSerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()
@@ -34,7 +33,7 @@ class RequestDetails(viewsets.ViewSet):
 
     def post(self,request):
         data = request.data
-        model = Request(fullname = data['fullname'], phone_number = data['phone_number'], email = data ['email'], role_id = data['role_id'])
+        model = Request(address = data['address'], created_at = data['created_at'], area = data ['area'], cost_total = data['cost_total'], status = data['status'], service = data ['service'], user = data['user'])
         model.save()
         serializer = RequestSerializer(model)
         return Response(serializer.data)

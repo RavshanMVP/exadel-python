@@ -19,7 +19,7 @@ from django.urls import path, include
 from api.urls import request, user, role, review, request_status, service
 
 urlpatterns = [
-
+    path('admin/', admin.site.urls),
     path('request/', include(request)),
     path('users/', include(user)),
     path('role/', include(role)),
@@ -28,8 +28,7 @@ urlpatterns = [
     path('review/', include(review)),
 
     path(r'auth/', include('djoser.urls')),
-    path(r'auth/', include('djoser.urls.authtoken')),
-    path(r'auth/', include('djoser.urls.jwt')),
+    path(r'auth/', include('djoser.urls.jwt'))
 
-    path('admin/', admin.site.urls),
+
 ]

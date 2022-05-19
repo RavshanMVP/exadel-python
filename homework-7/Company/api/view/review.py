@@ -35,7 +35,7 @@ class ReviewDetails(viewsets.ViewSet):
 
     def post(self,request):
         data = request.data
-        model = Review(fullname = data['fullname'], phone_number = data['phone_number'], email = data ['email'], role_id = data['role_id'])
+        model = Review(rating = data['rating'], feedback = data['feedback'], created_at = data ['created_at'], user = data['user'],service = data['service'], request = data['request'],)
         model.save()
         serializer = ReviewSerializer(model)
         return Response(serializer.data)
