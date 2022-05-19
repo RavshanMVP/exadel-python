@@ -28,6 +28,7 @@ urlpatterns = [
     path('review/', include(review)),
 
     path(r'auth/', include('djoser.urls')),
+    path(r'auth/', include('djoser.urls.authtoken')),
     path(r'auth/', include('djoser.urls.jwt')),
 
     path('admin/', admin.site.urls),
