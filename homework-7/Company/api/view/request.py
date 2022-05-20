@@ -4,9 +4,10 @@ from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from api.serializers import RequestSerializer
 from core.models import Request
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 
 class RequestDetails(viewsets.ViewSet):
-
+    permission_classes = [IsAuthenticatedOrReadOnly]
     def retrieve(self, request, pk=None):
         queryset = Request.objects.all()
         request = get_object_or_404(queryset, pk=pk)

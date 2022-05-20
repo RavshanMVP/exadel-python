@@ -2,11 +2,13 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 
 from api.serializers import ReviewSerializer
 from core.models import Review
 
 class ReviewDetails(viewsets.ViewSet):
+    permission_classes = [IsAuthenticatedOrReadOnly]
     def retrieve(self, request, pk=None):
         queryset = Review.objects.all()
         review = get_object_or_404(queryset, pk=pk)

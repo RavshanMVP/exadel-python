@@ -15,8 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
 from api.urls import request, user, role, review, request_status, service
+from djoser import urls
+from djoser.urls import jwt
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,8 +28,8 @@ urlpatterns = [
     path('service/', include(service)),
     path('review/', include(review)),
 
-    path(r'auth/', include('djoser.urls')),
-    path(r'auth/', include('djoser.urls.jwt'))
+    path(r'auth/', include(urls)),
+    path(r'auth/', include(jwt)),
 
 
 ]

@@ -1,12 +1,12 @@
 from rest_framework.response import Response
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
-from rest_framework import status
-
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from api.serializers.role import RoleSerializer
 from core.models import Role
 
 class RoleDetails(viewsets.ViewSet):
+    permission_classes = [AllowAny]
     def retrieve(self, request, pk=None):
         queryset = Role.objects.all()
         role = get_object_or_404(queryset, pk=pk)
@@ -15,6 +15,7 @@ class RoleDetails(viewsets.ViewSet):
 
 
     def list(self, request):
+        permission_classes = [AllowAny]
         queryset = Role.objects.all()
         serializer = RoleSerializer(queryset, many=True)
         return Response(serializer.data)
