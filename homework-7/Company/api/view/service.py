@@ -3,13 +3,13 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated
 from api.serializers.service import ServiceSerializer
-from core.models import Service
+from core.models import Service, User
 
 
 class ServiceDetails(viewsets.ViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
     def retrieve(self, request, pk=None):
         queryset = Service.objects.all()
         service = get_object_or_404(queryset, pk=pk)
@@ -37,7 +37,8 @@ class ServiceDetails(viewsets.ViewSet):
 
     def post(self,request):
         data = request.data
-        model = Service(name = data['name'], cost = data['cost'], company = data['company'])
+        company = User.objects.get(id=data['company'])
+        model = Service(name = data['name'], cost = data['cost'], company = company)
         model.save()
         serializer = ServiceSerializer(model)
         return Response(serializer.data)

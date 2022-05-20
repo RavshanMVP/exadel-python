@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from api.serializers.user import UserSerializer
-from core.models import User
+from core.models import User, Role
 class UserDetails(viewsets.ViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -37,7 +37,8 @@ class UserDetails(viewsets.ViewSet):
     def post(self,request):
 
         data = request.data
-        model = User(fullname = data['fullname'], phone_number = data['phone_number'], email = data ['email'], role = data['role'], password = data['password'])
+        role = Role.objects.get(id=data['role'])
+        model = User(fullname = data['fullname'], phone_number = data['phone_number'], email = data ['email'], role = role, password = data['password'])
         model.save()
         serializer = UserSerializer(model)
         return Response(serializer.data)

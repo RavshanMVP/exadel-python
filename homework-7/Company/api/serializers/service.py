@@ -7,8 +7,8 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = [ 'id', 'name', 'cost','company']
 
-        company = serializers.SerializerMethodField()
+    company = serializers.SerializerMethodField()
 
-        def get_company(self,service):
-            return service.company.fullname
+    def get_company(self,service):
+        return service.company.fullname
 

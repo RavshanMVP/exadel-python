@@ -15,18 +15,40 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from api.urls import request, user, role, review, request_status, service
+from api.view import RequestDetails, ServiceDetails, UserDetails, RoleDetails, ReviewDetails, RequestStatusDetails
 from djoser import urls
 from djoser.urls import jwt
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('request/', include(request)),
-    path('users/', include(user)),
-    path('role/', include(role)),
-    path('status/', include(request_status)),
-    path('service/', include(service)),
-    path('review/', include(review)),
+
+    # request urls
+    path("request/<pk>", RequestDetails.as_view({'get':'retrieve','delete':'delete','put':'put'})),
+    path("requests/list/", RequestDetails.as_view({'get':'list'})),
+    path("requests/create/", RequestDetails.as_view({'post':'post'})),
+
+# request status urls
+    path("status/<pk>", RequestStatusDetails.as_view({'get':'retrieve'})),
+    path("statuses/list/", RequestStatusDetails.as_view({'get' :'list'})),
+
+# review urls
+    path("review/<pk>", ReviewDetails.as_view({'get':'retrieve','delete':'delete','put':'put'})),
+    path("reviews/list/", ReviewDetails.as_view({'get':'list'})),
+    path("reviews/create/", ReviewDetails.as_view({'post': 'post'})),
+
+    # role urls
+    path("role/<pk>", RoleDetails.as_view({'get':'retrieve'})),
+    path("roles/list/", RoleDetails.as_view({'get':'list'})),
+
+    # service urls
+    path("service/<pk>", ServiceDetails.as_view({'get':'retrieve','delete':'delete','put':'put'})),
+    path("services/list/", ServiceDetails.as_view({'get':'list'})),
+    path("services/create/", ServiceDetails.as_view({'post': 'post'})),
+
+    #user urls
+    path("user/<pk>", UserDetails.as_view({'get':'retrieve','delete':'delete','put':'put',})),
+    path("users/list/", UserDetails.as_view({'get':'list'})),
+    path("users/create/", UserDetails.as_view({ 'post': 'post'})),
 
     path(r'auth/', include(urls)),
     path(r'auth/', include(jwt)),

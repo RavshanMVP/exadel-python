@@ -3,11 +3,11 @@ from rest_framework import status
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from api.serializers import RequestSerializer
-from core.models import Request
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from core.models import Request, User, Service, RequestStatus
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 class RequestDetails(viewsets.ViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
     def retrieve(self, request, pk=None):
         queryset = Request.objects.all()
         request = get_object_or_404(queryset, pk=pk)
@@ -34,7 +34,10 @@ class RequestDetails(viewsets.ViewSet):
 
     def post(self,request):
         data = request.data
-        model = Request(address = data['address'], created_at = data['created_at'], area = data ['area'], cost_total = data['cost_total'], status = data['status'], service = data ['service'], user = data['user'])
+        user = User.objects.get(id=data['user'])
+        service = Service.objects.get(id=data['service'])
+        status = RequestStatus.objects.get(id=data['status'])
+        model = Request(address = data['address'], created_at = data['created_at'], area = data ['area'], cost_total = data['cost_total'], status = status, service = service, user = user)
         model.save()
         serializer = RequestSerializer(model)
         return Response(serializer.data)

@@ -8,8 +8,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [ 'id', 'fullname', 'phone_number', 'email','role']
 
-        role = serializers.SerializerMethodField()
+    role = serializers.SerializerMethodField()
 
-        def get_role(self,user):
-            return user.role.role
+    def get_role(self,user):
+        return user.role.role
 

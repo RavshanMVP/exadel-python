@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 
 from api.serializers import ReviewSerializer
-from core.models import Review
+from core.models import Review, User, Request, Service
 
 class ReviewDetails(viewsets.ViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -37,7 +37,10 @@ class ReviewDetails(viewsets.ViewSet):
 
     def post(self,request):
         data = request.data
-        model = Review(rating = data['rating'], feedback = data['feedback'], created_at = data ['created_at'], user = data['user'],service = data['service'], request = data['request'],)
+        user = User.objects.get(id=data['user'])
+        service = Service.objects.get(id=data['service'])
+        request = Request.objects.get(id=data['request'])
+        model = Review(rating = data['rating'], feedback = data['feedback'], created_at = data ['created_at'], user = user,service = service, request = request)
         model.save()
         serializer = ReviewSerializer(model)
         return Response(serializer.data)
