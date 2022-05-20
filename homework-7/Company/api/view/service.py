@@ -31,13 +31,11 @@ class ServiceDetails(viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request):
-        permission_classes = [AllowAny]
         queryset = Service.objects.all()
         serializer = ServiceSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def post(self,request):
-        permission_classes = [AllowAny]
         data = request.data
         model = Service(name = data['name'], cost = data['cost'], company = data['company'])
         model.save()

@@ -5,7 +5,7 @@ from core.models import Service
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
-        fields = [ 'name', 'cost','company']
+        fields = [ 'id', 'name', 'cost','company']
 
         company = serializers.SerializerMethodField()
 

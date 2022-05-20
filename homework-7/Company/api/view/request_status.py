@@ -6,7 +6,7 @@ from api.serializers import RequestStatusSerializer
 from core.models import RequestStatus
 
 class RequestStatusDetails(viewsets.ViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     def retrieve(self, request, pk=None):
         queryset = RequestStatus.objects.all()
         status = get_object_or_404(queryset, pk=pk)

@@ -5,5 +5,5 @@ from core.models import RequestStatus
 class RequestStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = RequestStatus
-        fields = [ 'status']
+        fields = ['id', 'status']
 

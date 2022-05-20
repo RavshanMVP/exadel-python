@@ -6,7 +6,7 @@ sys.path.clear()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = [ 'fullname', 'phone_number', 'email','role','password']
+        fields = [ 'id', 'fullname', 'phone_number', 'email','role']
 
         role = serializers.SerializerMethodField()
 

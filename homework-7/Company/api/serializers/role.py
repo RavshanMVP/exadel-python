@@ -5,5 +5,5 @@ from core.models import Role
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
-        fields = ['role']
+        fields = ['id', 'role']
 
