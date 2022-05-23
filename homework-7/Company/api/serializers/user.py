@@ -1,8 +1,6 @@
 from rest_framework import serializers
-import sys
-sys.path.append("....")
+
 from core.models import User
-sys.path.clear()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

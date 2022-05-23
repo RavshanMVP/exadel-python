@@ -16,18 +16,24 @@ class UserDetails(viewsets.ViewSet):
 
 
     def delete(self,request,pk,format = None):
-        model = self.get_data(pk)
-        model.delete()
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, pk=pk)
+        user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def put(self,request,pk,format = None):
 
-        model = self.get_data(pk)
-        serializer = UserSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
+        user_object = User.objects.all()
+        user = get_object_or_404(user_object, pk=pk)
+        user.fullname = data['fullname']
+        user.email = data['email']
+        user.phone_number = data['phone_number']
+        user.role = Role.objects.get(id=data['role'])
+        user.save()
+
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
     def list(self, request):
         queryset = User.objects.all()

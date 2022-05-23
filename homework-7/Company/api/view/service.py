@@ -9,7 +9,10 @@ from core.models import Service, User
 
 
 class ServiceDetails(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+
+
+
     def retrieve(self, request, pk=None):
         queryset = Service.objects.all()
         service = get_object_or_404(queryset, pk=pk)
@@ -18,17 +21,22 @@ class ServiceDetails(viewsets.ViewSet):
 
 
     def delete(self,request,pk,format = None):
-        model = self.get_data(pk)
-        model.delete()
+        queryset = Service.objects.all()
+        service = get_object_or_404(queryset, pk=pk)
+        service.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def put(self,request,pk,format = None):
-        model = self.get_data(pk)
-        serializer = ServiceSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
+        service_list = Service.objects.all()
+        service = get_object_or_404(service_list, pk=pk)
+        service.name = data['name']
+        service.cost = int(data['cost'])
+        service.company = User.objects.get(id=data['company'])
+        service.save()
+
+        serializer = ServiceSerializer(service)
+        return Response(serializer.data)
 
     def list(self, request):
         queryset = Service.objects.all()

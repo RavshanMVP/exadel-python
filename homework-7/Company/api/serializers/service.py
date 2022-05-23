@@ -1,6 +1,5 @@
 from rest_framework import serializers
-import sys
-sys.path.append("....")
+
 from core.models import Service
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,4 +10,5 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     def get_company(self,service):
         return service.company.fullname
+
 

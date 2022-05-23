@@ -16,16 +16,25 @@ class RequestDetails(viewsets.ViewSet):
 
 
     def delete(self,request,pk,format = None):
-        model = self.get_data(pk)
-        model.delete()
+        queryset = Request.objects.all()
+        requests = get_object_or_404(queryset, pk=pk)
+        requests.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def put(self,request,pk,format = None):
-        serializer = RequestSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
+        request_list = Service.objects.all()
+        request_ = get_object_or_404(request_list, pk=pk)
+        request_.address = data['address']
+        request_.created_at = data['created_at']
+        request_.are = data['area']
+        request_.user = User.objects.get(id=data['user'])
+        request_.service = Service.objects.get(id=data['service'])
+        request_.status = RequestStatus.objects.get(id=data['status'])
+        request_.save()
+
+        serializer = RequestSerializer(request_)
+        return Response(serializer.data)
 
     def list(self, request):
         queryset = Request.objects.all()

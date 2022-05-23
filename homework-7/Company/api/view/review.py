@@ -17,17 +17,25 @@ class ReviewDetails(viewsets.ViewSet):
 
 
     def delete(self,request,pk,format = None):
-        model = self.get_data(pk)
-        model.delete()
+        queryset = Review.objects.all()
+        review = get_object_or_404(queryset, pk=pk)
+        review.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def put(self,request,pk,format = None):
-        model = self.get_data(pk)
-        serializer = ReviewSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
+        review_list = Review.objects.all()
+        review = get_object_or_404(review_list, pk=pk)
+        review.rating = data['rating']
+        review.created_at = data['created_at']
+        review.feedback = data['feedback']
+        review.user = User.objects.get(id=data['user'])
+        review.service = Service.objects.get(id=data['service'])
+        review.request = Request.objects.get(id=data['request'])
+        review.save()
+
+        serializer = ReviewSerializer(review)
+        return Response(serializer.data)
 
 
     def list(self, request):
