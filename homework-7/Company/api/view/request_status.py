@@ -7,15 +7,15 @@ from core.models import RequestStatus
 
 class RequestStatusDetails(viewsets.ViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = RequestStatus.objects.all()
     def retrieve(self, request, pk=None):
-        queryset = RequestStatus.objects.all()
-        status = get_object_or_404(queryset, pk=pk)
+
+        status = get_object_or_404(self.queryset, pk=pk)
         serializer = RequestStatusSerializer(status)
         return Response(serializer.data)
 
     def list(self, request):
 
-        queryset = RequestStatus.objects.all()
-        serializer = RequestStatusSerializer(queryset, many=True)
+        serializer = RequestStatusSerializer(self.queryset, many=True)
         return Response(serializer.data)
 

@@ -10,26 +10,23 @@ from core.models import Service, User
 
 class ServiceDetails(viewsets.ViewSet):
     permission_classes = [AllowAny]
-
+    queryset = Service.objects.all()
 
 
     def retrieve(self, request, pk=None):
-        queryset = Service.objects.all()
-        service = get_object_or_404(queryset, pk=pk)
+        service = get_object_or_404(self.queryset, pk=pk)
         serializer = ServiceSerializer(service)
         return Response(serializer.data)
 
 
     def delete(self,request,pk,format = None):
-        queryset = Service.objects.all()
-        service = get_object_or_404(queryset, pk=pk)
+        service = get_object_or_404(self.queryset, pk=pk)
         service.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def put(self,request,pk,format = None):
         data = request.data
-        service_list = Service.objects.all()
-        service = get_object_or_404(service_list, pk=pk)
+        service = get_object_or_404(self.queryset, pk=pk)
         service.name = data['name']
         service.cost = int(data['cost'])
         service.company = User.objects.get(id=data['company'])
@@ -39,8 +36,7 @@ class ServiceDetails(viewsets.ViewSet):
         return Response(serializer.data)
 
     def list(self, request):
-        queryset = Service.objects.all()
-        serializer = ServiceSerializer(queryset, many=True)
+        serializer = ServiceSerializer(self.queryset, many=True)
         return Response(serializer.data)
 
     def post(self,request):

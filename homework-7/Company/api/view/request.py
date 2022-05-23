@@ -8,28 +8,25 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 class RequestDetails(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
+    queryset = Request.objects.all()
     def retrieve(self, request, pk=None):
-        queryset = Request.objects.all()
-        request = get_object_or_404(queryset, pk=pk)
+
+        request = get_object_or_404(self.queryset, pk=pk)
         serializer = RequestSerializer(request)
         return Response(serializer.data)
 
 
     def delete(self,request,pk,format = None):
-        queryset = Request.objects.all()
-        requests = get_object_or_404(queryset, pk=pk)
+        requests = get_object_or_404(self.queryset, pk=pk)
         requests.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def put(self,request,pk,format = None):
         data = request.data
-        request_list = Service.objects.all()
-        request_ = get_object_or_404(request_list, pk=pk)
+        request_ = get_object_or_404(self.queryset, pk=pk)
         request_.address = data['address']
         request_.created_at = data['created_at']
-        request_.are = data['area']
-        request_.user = User.objects.get(id=data['user'])
-        request_.service = Service.objects.get(id=data['service'])
+        request_.area = data['area']
         request_.status = RequestStatus.objects.get(id=data['status'])
         request_.save()
 
@@ -37,8 +34,7 @@ class RequestDetails(viewsets.ViewSet):
         return Response(serializer.data)
 
     def list(self, request):
-        queryset = Request.objects.all()
-        serializer = RequestSerializer(queryset, many=True)
+        serializer = RequestSerializer(self.queryset, many=True)
         return Response(serializer.data)
 
     def post(self,request):

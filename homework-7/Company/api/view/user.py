@@ -7,37 +7,33 @@ from api.serializers.user import UserSerializer
 from core.models import User, Role
 class UserDetails(viewsets.ViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
-
+    queryset = User.objects.all()
     def retrieve(self, request, pk=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
+
+        user = get_object_or_404(self.queryset, pk=pk)
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
 
     def delete(self,request,pk,format = None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
+        user = get_object_or_404(self.queryset, pk=pk)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def put(self,request,pk,format = None):
 
         data = request.data
-        user_object = User.objects.all()
-        user = get_object_or_404(user_object, pk=pk)
+        user = get_object_or_404(self.queryset, pk=pk)
         user.fullname = data['fullname']
         user.email = data['email']
         user.phone_number = data['phone_number']
-        user.role = Role.objects.get(id=data['role'])
         user.save()
 
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
     def list(self, request):
-        queryset = User.objects.all()
-        serializer = UserSerializer(queryset, many=True)
+        serializer = UserSerializer(self.queryset, many=True)
         return Response(serializer.data)
 
     def post(self,request):

@@ -7,15 +7,14 @@ from core.models import Role
 
 class RoleDetails(viewsets.ViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = Role.objects.all()
     def retrieve(self, request, pk=None):
-        queryset = Role.objects.all()
-        role = get_object_or_404(queryset, pk=pk)
+        role = get_object_or_404(self.queryset, pk=pk)
         serializer = RoleSerializer(role)
         return Response(serializer.data)
 
 
     def list(self, request):
-        queryset = Role.objects.all()
-        serializer = RoleSerializer(queryset, many=True)
+        serializer = RoleSerializer(self.queryset, many=True)
         return Response(serializer.data)
 

@@ -9,29 +9,24 @@ from core.models import Review, User, Request, Service
 
 class ReviewDetails(viewsets.ViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = Review.objects.all()
     def retrieve(self, request, pk=None):
-        queryset = Review.objects.all()
-        review = get_object_or_404(queryset, pk=pk)
+
+        review = get_object_or_404(self.queryset, pk=pk)
         serializer = ReviewSerializer(review)
         return Response(serializer.data)
 
 
     def delete(self,request,pk,format = None):
-        queryset = Review.objects.all()
-        review = get_object_or_404(queryset, pk=pk)
+        review = get_object_or_404(self.queryset, pk=pk)
         review.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def put(self,request,pk,format = None):
         data = request.data
-        review_list = Review.objects.all()
-        review = get_object_or_404(review_list, pk=pk)
+        review = get_object_or_404(self.queryset, pk=pk)
         review.rating = data['rating']
-        review.created_at = data['created_at']
         review.feedback = data['feedback']
-        review.user = User.objects.get(id=data['user'])
-        review.service = Service.objects.get(id=data['service'])
-        review.request = Request.objects.get(id=data['request'])
         review.save()
 
         serializer = ReviewSerializer(review)
@@ -39,8 +34,7 @@ class ReviewDetails(viewsets.ViewSet):
 
 
     def list(self, request):
-        queryset = Review.objects.all()
-        serializer = ReviewSerializer(queryset, many=True)
+        serializer = ReviewSerializer(self.queryset, many=True)
         return Response(serializer.data)
 
     def post(self,request):
