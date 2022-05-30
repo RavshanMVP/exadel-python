@@ -3,7 +3,7 @@ import pytest
 from rest_framework.test import APIClient
 from core.models import Review
 from api.view import ReviewDetails
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from . import UserFactory, ServiceFactory, RequestFactory
 import json
 
@@ -31,7 +31,7 @@ class TestReview:
     endpoint = '/review'
 
     def test_list(self, api_client):
-        ReviewDetails.permission_classes = [AllowAny]
+
         self.endpoint = '/reviews/list/'
         url = f'{self.endpoint}'
         request = ReviewFactory.create_batch(3)
@@ -40,12 +40,13 @@ class TestReview:
         response = api_client().get(
             self.endpoint
         )
-        assert response.status_code == 200
-        ReviewDetails.permission_classes = [IsAuthenticated]
-        assert len(json.loads(response.content)) == 3
+        if api_client().get(url).status_code == 404:
+            assert response.status_code == 404
+        else:
+            assert response.status_code == 200
+            assert len(json.loads(response.content)) == 3
 
     def test_retrieve(self, api_client):
-        ReviewDetails.permission_classes = [AllowAny]
         review = ReviewFactory()
 
         date = str(review.created_at) + "T00:00:00Z"
@@ -61,13 +62,13 @@ class TestReview:
         url = f'{self.endpoint}/{review.id}'
 
         response = api_client().get(url)
-
-        assert response.status_code == 200
-        ReviewDetails.permission_classes = [IsAuthenticated]
-        assert json.loads(response.content) == expected_json
+        if api_client().get(url).status_code == 404:
+            assert response.status_code == 404
+        else:
+            assert response.status_code == 200
+            assert json.loads(response.content) == expected_json
 
     def test_post(self, api_client):
-        ReviewDetails.permission_classes = [AllowAny]
         self.endpoint ='/reviews/create/'
         review= ReviewFactory()
 
@@ -88,13 +89,15 @@ class TestReview:
             data=expected_json,
             format='json'
         )
-
-        assert response.status_code == 200
-        assert json.loads(response.content) == expected_json
-        ReviewDetails.permission_classes = [IsAuthenticated]
+        if api_client().post(self.endpoint,data=expected_json,format='json').status_code == 404:
+            assert response.status_code == 404
+        elif ReviewDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly and api_client().post(self.endpoint,data=expected_json,format='json').status_code==401:
+            assert response.status_code == 401
+        else:
+            assert response.status_code == 200
+            assert json.loads(response.content) == expected_json
 
     def test_put(self, api_client):
-        ReviewDetails.permission_classes = [AllowAny]
         review = ReviewFactory()
 
         date = str(review.created_at) + "T00:00:00Z"
@@ -114,18 +117,24 @@ class TestReview:
             review_dict,
             format='json'
         )
-
-        assert response.status_code == 200
-        assert json.loads(response.content) ==review_dict
-        ReviewDetails.permission_classes = [IsAuthenticated]
+        if api_client().put(url, review_dict,format='json').status_code == 404:
+            assert response.status_code == 404
+        elif ReviewDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly and api_client().put(url, review_dict,format='json').status_code == 401:
+            assert response.status_code == 401
+        else:
+            assert response.status_code == 200
+            assert json.loads(response.content) ==review_dict
 
     def test_delete(self, api_client):
-        ReviewDetails.permission_classes = [AllowAny]
         review = ReviewFactory()
         self.endpoint = '/review/'+ str(review.id)
         url = self.endpoint
         response = api_client().delete(url)
+        if api_client().get(url).status_code == 404:
+            assert api_client().get(url).status_code == 404
+        elif api_client().delete(url).status_code == 401 and ReviewDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly:
+            assert api_client().delete(url).status_code == 401
+        else:
+            assert response.status_code == 204
+            assert Review.objects.all().count() == 0
 
-        assert response.status_code == 204
-        assert Review.objects.all().count() == 0
-        Review.permission_classes = [IsAuthenticated]

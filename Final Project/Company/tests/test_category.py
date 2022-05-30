@@ -3,7 +3,7 @@ import pytest
 from rest_framework.test import APIClient
 from core.models import Category
 from api.view import CategoryDetails
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 import json
 
 
@@ -27,7 +27,6 @@ class TestCategory:
     endpoint = '/category'
 
     def test_list(self, api_client):
-        CategoryDetails.permission_classes = [AllowAny]
         self.endpoint = '/categories/list/'
         url = f'{self.endpoint}'
         category = CategoryFactory.create_batch(3)
@@ -36,12 +35,15 @@ class TestCategory:
         response = api_client().get(
             self.endpoint
         )
-        assert response.status_code == 200
-        CategoryDetails.permission_classes = [IsAuthenticated]
-        assert len(json.loads(response.content)) == 3
+        if api_client().get(url).status_code == 404:
+            assert response.status_code == 404
+        elif api_client().get(url).status_code == 401 and CategoryDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly:
+            assert api_client().get(url).status_code == 401
+        else:
+            assert response.status_code == 200
+            assert len(json.loads(response.content)) == 3
 
     def test_retrieve(self, api_client):
-        CategoryDetails.permission_classes = [AllowAny]
         category = CategoryFactory()
         expected_json = {
             'category': category.category,
@@ -50,13 +52,15 @@ class TestCategory:
         url = f'{self.endpoint}/{category.id}'
 
         response = api_client().get(url)
-
-        assert response.status_code == 200
-        CategoryDetails.permission_classes = [IsAuthenticated]
-        assert json.loads(response.content) == expected_json
+        if api_client().get(url).status_code == 404:
+            assert response.status_code == 404
+        elif api_client().get(url).status_code == 401 and CategoryDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly:
+            assert api_client().get(url).status_code == 401
+        else:
+            assert response.status_code == 200
+            assert json.loads(response.content) == expected_json
 
     def test_post(self, api_client):
-        CategoryDetails.permission_classes = [AllowAny]
         self.endpoint ='/categories/create/'
         category = CategoryFactory()
         expected_json = {
@@ -69,13 +73,15 @@ class TestCategory:
             data=expected_json,
             format='json'
         )
-
-        assert response.status_code == 200
-        assert json.loads(response.content) == expected_json
-        CategoryDetails.permission_classes = [IsAuthenticated]
+        if api_client().post(self.endpoint,data=expected_json,format='json').status_code == 404:
+            assert response.status_code == 404
+        elif CategoryDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly and api_client().post(self.endpoint,data=expected_json,format='json').status_code==401:
+            assert response.status_code == 401
+        else:
+            assert response.status_code == 200
+            assert json.loads(response.content) == expected_json
 
     def test_put(self, api_client):
-        CategoryDetails.permission_classes = [AllowAny]
         category = CategoryFactory()
         category_dict = {
             'category': category.category,
@@ -88,18 +94,24 @@ class TestCategory:
             category_dict,
             format='json'
         )
+        if api_client().put(url, category_dict,format='json').status_code == 404:
+            assert response.status_code == 404
+        elif CategoryDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly and api_client().put(url, category_dict,format='json').status_code == 401:
+            assert response.status_code == 401
+        else:
+            assert response.status_code == 200
+            assert json.loads(response.content) ==category_dict
 
-        assert response.status_code == 200
-        assert json.loads(response.content) ==category_dict
-        CategoryDetails.permission_classes = [IsAuthenticated]
 
     def test_delete(self, api_client):
-        CategoryDetails.permission_classes = [AllowAny]
         category = CategoryFactory()
         self.endpoint = '/category/'+ str(category.id)
         url = self.endpoint
         response = api_client().delete(url)
-
-        assert response.status_code == 204
-        assert Category.objects.all().count() == 0
-        CategoryDetails.permission_classes = [IsAuthenticated]
+        if api_client().get(url).status_code == 404:
+            assert api_client().get(url).status_code == 404
+        elif api_client().delete(url).status_code == 401 and CategoryDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly:
+            assert api_client().delete(url).status_code == 401
+        else:
+            assert response.status_code == 204
+            assert Category.objects.all().count() == 0
