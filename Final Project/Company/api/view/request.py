@@ -4,10 +4,10 @@ from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from api.serializers import RequestSerializer
 from core.models import Request, User, Service, RequestStatus
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 
 class RequestDetails(viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Request.objects.select_related('user','service','status').order_by("-created_at")
     serializer_class = RequestSerializer
     def retrieve(self, request, pk=None):

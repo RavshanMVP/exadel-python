@@ -28,7 +28,6 @@ def api_client():
 
 class TestUser:
     endpoint = '/user'
-
     def test_list(self, api_client):
         self.endpoint = '/users/list/'
         url = f'{self.endpoint}'
@@ -69,7 +68,7 @@ class TestUser:
         self.endpoint ='/users/create/'
         user = UserFactory()
 
-        some_email = user.email + " "
+        some_email = user.email + "1"
         user.email = some_email
         expected_json = {
             'id':user.id+1,
@@ -97,6 +96,8 @@ class TestUser:
 
     def test_put(self, api_client):
         user = UserFactory()
+        some_email = user.email + " "
+        user.email = some_email
         user_dict = {
             'id':user.id,
             'fullname':user.fullname,
@@ -130,7 +131,9 @@ class TestUser:
 
         response = api_client().delete(url)
 
-        if api_client().delete(url).status_code == 401 and UserDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly:
+        if api_client().get(url).status_code == 404:
+            assert api_client().get(url).status_code == 404
+        elif api_client().delete(url).status_code == 401 and UserDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly:
             assert api_client().delete(url).status_code == 401
         else:
             assert response.status_code == 204

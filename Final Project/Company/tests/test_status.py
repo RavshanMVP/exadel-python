@@ -22,7 +22,6 @@ def api_client():
 
 class TestStatus:
     endpoint = '/statuses/'
-
     def test_list(self, api_client):
         self.endpoint = '/roles/list/'
         url = f'{self.endpoint}'

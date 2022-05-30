@@ -30,7 +30,6 @@ def api_client():
 
 class TestRequest:
     endpoint = '/request'
-
     def test_list(self, api_client):
         self.endpoint = '/requests/list/'
         url = f'{self.endpoint}'
@@ -42,8 +41,6 @@ class TestRequest:
         )
         if api_client().get(url).status_code == 404:
             assert response.status_code == 404
-        elif api_client().get(url).status_code == 401 and RequestDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly:
-            assert api_client().get(url).status_code == 401
         else:
             assert response.status_code == 200
             assert len(json.loads(response.content)) == 3
@@ -68,8 +65,6 @@ class TestRequest:
         response = api_client().get(url)
         if api_client().get(url).status_code == 404:
             assert response.status_code == 404
-        elif api_client().get(url).status_code == 401 and RequestDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly:
-            assert api_client().get(url).status_code == 401
         else:
             assert response.status_code == 200
             assert json.loads(response.content) == expected_json

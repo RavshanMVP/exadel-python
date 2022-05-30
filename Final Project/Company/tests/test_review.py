@@ -29,7 +29,6 @@ def api_client():
 
 class TestReview:
     endpoint = '/review'
-
     def test_list(self, api_client):
 
         self.endpoint = '/reviews/list/'
