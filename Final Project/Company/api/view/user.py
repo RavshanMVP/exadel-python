@@ -44,8 +44,8 @@ class UserDetails(viewsets.GenericViewSet):
     def post(self,request):
 
         data = request.data
-        role = Role.objects.get(id=data['role'])
-        model = User(fullname = data['fullname'], phone_number = data['phone_number'], email = data ['email'], role = role, password = data['password'])
+        role = Role.objects.get(role=data['role'])
+        model = User(fullname = data['fullname'], phone_number = data['phone_number'], email = data['email'], role = role, password = data['password'])
         model.save()
         serializer = UserSerializer_(model)
         return Response(serializer.data)

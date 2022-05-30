@@ -29,8 +29,8 @@ class ServiceDetails(viewsets.GenericViewSet):
         service = get_object_or_404(self.queryset, pk=pk)
         service.name = data['name']
         service.cost = int(data['cost'])
-        service.company = User.objects.get(id=data['company'])
-        service.category = Category.objects.get(id = data['category'])
+        service.company = User.objects.get(fullname=data['company'])
+        service.category = Category.objects.get(category = data['category'])
         service.save()
 
         serializer = ServiceSerializer(service)
@@ -42,8 +42,8 @@ class ServiceDetails(viewsets.GenericViewSet):
 
     def post(self, request):
         data = request.data
-        company = User.objects.get(id=data['company'])
-        category = Category.objects.get(id=data['category'])
+        company = User.objects.get(fullname=data['company'])
+        category = Category.objects.get(category=data['category'])
         model = Service(name = data['name'], cost = data['cost'], company = company, category = category)
         model.save()
         serializer = ServiceSerializer(model)
@@ -83,7 +83,7 @@ class CategoryDetails(viewsets.GenericViewSet):
     def post(self, request):
         data = request.data
 
-        model = Service(category = data['category'])
+        model = Category(category = data['category'])
         model.save()
         serializer = CategorySerializer(model)
         return Response(serializer.data)

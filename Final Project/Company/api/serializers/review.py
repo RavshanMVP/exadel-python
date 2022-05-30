@@ -14,4 +14,4 @@ class ReviewSerializer(serializers.ModelSerializer):
     def get_service(self,review):
         return review.service.name
     def get_request(self,review):
-        return review.request.address
+        return review.request.id

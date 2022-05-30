@@ -40,8 +40,8 @@ class ReviewDetails(viewsets.GenericViewSet):
 
     def post(self,request):
         data = request.data
-        user = User.objects.get(id=data['user'])
-        service = Service.objects.get(id=data['service'])
+        user = User.objects.get(fullname=data['user'])
+        service = Service.objects.get(name=data['service'])
         request = Request.objects.get(id=data['request'])
         model = Review(rating = data['rating'], feedback = data['feedback'], created_at = data ['created_at'], user = user,service = service, request = request)
         model.save()
