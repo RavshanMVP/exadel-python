@@ -1,10 +1,10 @@
 import factory
 import pytest
 from rest_framework.test import APIClient
-from core.models import Request
+from core.models import Request, Role, User
 from api.view import RequestDetails
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
-from . import UserFactory, ServiceFactory, RequestStatusFactory
+from . import UserFactory, ServiceFactory, RequestStatusFactory, authorize
 import json
 
 
@@ -27,23 +27,22 @@ class RequestFactory(factory.django.DjangoModelFactory):
 def api_client():
     return APIClient
 
-
 class TestRequest:
     endpoint = '/request'
-    RequestDetails.permission_classes = [AllowAny]
-    def test_list(self, api_client):
+    def test_list(self, api_client, authorize):
         self.endpoint = '/requests/list/'
         url = f'{self.endpoint}'
         request = RequestFactory.create_batch(3)
 
         response = api_client().get(
-            self.endpoint
+            self.endpoint,
+            HTTP_AUTHORIZATION = authorize,
         )
 
         assert response.status_code == 200
         assert len(json.loads(response.content)) == 3
 
-    def test_retrieve(self, api_client):
+    def test_retrieve(self, api_client,authorize):
 
         request = RequestFactory()
 
@@ -60,12 +59,12 @@ class TestRequest:
         }
         url = f'{self.endpoint}/{request.id}'
 
-        response = api_client().get(url)
+        response = api_client().get(url, HTTP_AUTHORIZATION = authorize)
 
         assert response.status_code == 200
         assert json.loads(response.content) == expected_json
 
-    def test_post(self, api_client):
+    def test_post(self, api_client,authorize):
 
         self.endpoint ='/requests/create/'
         request= RequestFactory()
@@ -86,14 +85,15 @@ class TestRequest:
         response = api_client().post(
             self.endpoint,
             data=expected_json,
-            format='json'
+            format='json',
+            HTTP_AUTHORIZATION =  authorize,
         )
 
         assert response.status_code == 200
         assert json.loads(response.content) == expected_json
 
 
-    def test_put(self, api_client):
+    def test_put(self, api_client,authorize):
         request = RequestFactory()
 
         date = str(request.created_at) + "T00:00:00Z"
@@ -113,18 +113,19 @@ class TestRequest:
         response = api_client().put(
             url,
             request_dict,
-            format='json'
+            format='json',
+            HTTP_AUTHORIZATION = authorize,
         )
 
         assert response.status_code == 200
         assert json.loads(response.content) ==request_dict
 
 
-    def test_delete(self, api_client):
+    def test_delete(self, api_client,authorize):
         request = RequestFactory()
         self.endpoint = '/request/'+ str(request.id)
         url = self.endpoint
-        response = api_client().delete(url)
+        response = api_client().delete(url, HTTP_AUTHORIZATION = authorize,)
 
         assert response.status_code == 204
         assert Request.objects.all().count() == 0
@@ -135,12 +136,12 @@ class TestRequest:
         response = api_client().get( self.endpoint)
         assert response.status_code == 404
 
-    def test_retrieve_not_found(self, api_client):
+    def test_retrieve_not_found(self, api_client, authorize):
         #also works for put and post
         self.endpoint = '/request/'
         request= RequestFactory()
         self.endpoint +=str(request.id+1)
-        response = api_client().get( self.endpoint)
+        response = api_client().get( self.endpoint, HTTP_AUTHORIZATION =authorize)
         assert response.status_code == 404
 
     def test_create_not_found(self, api_client):
@@ -149,7 +150,8 @@ class TestRequest:
         response = api_client().get( self.endpoint)
         assert response.status_code == 404
 
-    def test_put_missing_value(self,api_client):
+    def test_put_missing_value(self,api_client,authorize):
+        response = api_client().get(self.endpoint, HTTP_AUTHORIZATION = authorize )
         #also works for retrieve and post
         request = RequestFactory()
         date = str(request.created_at) + "T00:00:00Z"
@@ -160,11 +162,21 @@ class TestRequest:
             'user':request.user.fullname,
             'address' : request.address
         }
-        assert len(expected_json) < 8
+        status = 200
+        try:
+            response = api_client().put(
+                self.endpoint,
+                expected_json,
+                format='json',
+                HTTP_AUTHORIZATION = authorize
+            )
+            assert status == 200
+        except KeyError:
+            status = 500
+            assert status == 500
 
     def test_unauthorized(self, api_client):
         #works for every view if I change url
-        RequestDetails.permission_classes = [IsAuthenticated]
         self.endpoint ='/request/'
         request = RequestFactory()
         date = str(request.created_at) + "T00:00:00Z"

@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from core.models import Category, Service
 from api.view import ServiceDetails
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
-from . import CategoryFactory, UserFactory
+from . import CategoryFactory, UserFactory, authorize
 import json
 
 
@@ -28,21 +28,20 @@ def api_client():
 
 class TestService:
     endpoint = '/service'
-    ServiceDetails.permission_classes = [AllowAny]
-    def test_list(self, api_client):
+    def test_list(self, api_client,authorize):
         self.endpoint = '/services/list/'
         url = f'{self.endpoint}'
         service = ServiceFactory.create_batch(3)
 
 
         response = api_client().get(
-            self.endpoint
+            self.endpoint,HTTP_AUTHORIZATION = authorize
         )
 
         assert response.status_code == 200
         assert len(json.loads(response.content)) == 3
 
-    def test_retrieve(self, api_client):
+    def test_retrieve(self, api_client, authorize):
         service = ServiceFactory()
         expected_json = {
             'category': service.category.category,
@@ -53,12 +52,12 @@ class TestService:
         }
         url = f'{self.endpoint}/{service.id}'
 
-        response = api_client().get(url)
+        response = api_client().get(url, HTTP_AUTHORIZATION = authorize)
 
         assert response.status_code == 200
         assert json.loads(response.content) == expected_json
 
-    def test_post(self, api_client):
+    def test_post(self, api_client, authorize):
         self.endpoint ='/services/create/'
         service= ServiceFactory()
         expected_json = {
@@ -72,14 +71,15 @@ class TestService:
         response = api_client().post(
             self.endpoint,
             data=expected_json,
-            format='json'
+            format='json',
+            HTTP_AUTHORIZATION = authorize
         )
 
         assert response.status_code == 200
         assert json.loads(response.content) == expected_json
 
 
-    def test_put(self, api_client):
+    def test_put(self, api_client,authorize):
         service = ServiceFactory()
         service_dict = {
             'category': service.category.category,
@@ -93,18 +93,19 @@ class TestService:
         response = api_client().put(
             url,
             service_dict,
-            format='json'
+            format='json',
+            HTTP_AUTHORIZATION = authorize
         )
 
         assert response.status_code == 200
         assert json.loads(response.content) ==service_dict
 
 
-    def test_delete(self, api_client):
+    def test_delete(self, api_client, authorize):
         service = ServiceFactory()
         self.endpoint = '/service/'+ str(service.id)
         url = self.endpoint
-        response = api_client().delete(url)
+        response = api_client().delete(url,HTTP_AUTHORIZATION = authorize)
 
         assert response.status_code == 204
         assert Service.objects.all().count() == 0
@@ -116,21 +117,21 @@ class TestService:
         response = api_client().get( self.endpoint)
         assert response.status_code == 404
 
-    def test_retrieve_not_found(self, api_client):
+    def test_retrieve_not_found(self, api_client, authorize):
         #also works for put and post
         self.endpoint = '/service/'
         service = ServiceFactory()
         self.endpoint +=str(service.id+1)
-        response = api_client().get( self.endpoint)
+        response = api_client().get( self.endpoint, HTTP_AUTHORIZATION = authorize)
         assert response.status_code == 404
 
-    def test_create_not_found(self, api_client):
+    def test_create_not_found(self, api_client, authorize):
         self.endpoint = '/service/create/1'
         service = ServiceFactory.create_batch(1)
-        response = api_client().get( self.endpoint)
+        response = api_client().get( self.endpoint, HTTP_AUTHORIZATION = authorize)
         assert response.status_code == 404
 
-    def test_put_missing_value(self,api_client):
+    def test_put_missing_value(self,api_client, authorize):
         #also works for retrieve and post
         service = ServiceFactory()
         expected_json = {
@@ -139,11 +140,21 @@ class TestService:
             'cost':service.cost,
             'company':service.company.fullname,
         }
-        assert len(expected_json) < 5
+        status = 200
+        try:
+            response = api_client().put(
+                self.endpoint,
+                expected_json,
+                format='json',
+                HTTP_AUTHORIZATION = authorize
+            )
+            assert status == 200
+        except KeyError:
+            status = 500
+            assert status == 500
 
     def test_unauthorized(self, api_client):
         #works for every view if I change url
-        ServiceDetails.permission_classes = [IsAuthenticated]
         self.endpoint ='/service/'
         service = ServiceFactory()
         expected_json = {

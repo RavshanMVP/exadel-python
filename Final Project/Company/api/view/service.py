@@ -51,7 +51,7 @@ class ServiceDetails(viewsets.GenericViewSet):
 
 
 class CategoryDetails(viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
     queryset = Category.objects.all().order_by("category")
     serializer_class = CategorySerializer
 
