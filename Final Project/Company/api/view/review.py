@@ -2,13 +2,13 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from api.serializers import ReviewSerializer
 from core.models import Review, User, Request, Service
 
 class ReviewDetails(viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
     queryset = Review.objects.select_related('request','service','user').order_by("created_at","-rating")
     serializer_class = ReviewSerializer
 

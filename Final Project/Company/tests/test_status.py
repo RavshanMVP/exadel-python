@@ -31,11 +31,9 @@ class TestStatus:
         response = api_client().get(
             self.endpoint
         )
-        if api_client().get(url).status_code == 404:
-            assert response.status_code == 404
-        else:
-            assert response.status_code == 200
-            assert len(json.loads(response.content)) == 3
+
+        assert response.status_code == 200
+        assert len(json.loads(response.content)) == 3
 
     def test_retrieve(self, api_client):
         request = RequestStatusFactory()
@@ -46,8 +44,17 @@ class TestStatus:
         url = f'{self.endpoint[:-3]}/{request.id}'
 
         response = api_client().get(url)
-        if api_client().get(url).status_code == 404:
-            assert response.status_code == 404
-        else:
-            assert response.status_code == 200
-            assert json.loads(response.content) == expected_json
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == expected_json
+
+    def test_list_not_found(self, api_client):
+        self.endpoint = '/categories/listt/'
+        service= RequestStatusFactory.create_batch(3)
+        response = api_client().get( self.endpoint)
+        assert response.status_code == 404
+
+
+
+
+

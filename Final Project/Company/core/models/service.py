@@ -5,7 +5,7 @@ class Category(models.Model):
     category = models.CharField("Category of the service", max_length=50, null=False)
 
     def __str__(self):
-        return self.name
+        return self.category
 
 class Service(models.Model):
     name = models.CharField("Name of the service", max_length= 50, null= False)

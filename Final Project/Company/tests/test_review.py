@@ -10,6 +10,7 @@ import json
 
 pytestmark = pytest.mark.django_db
 
+
 class ReviewFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Review
@@ -29,21 +30,19 @@ def api_client():
 
 class TestReview:
     endpoint = '/review'
+    ReviewDetails.permission_classes = [AllowAny]
     def test_list(self, api_client):
 
         self.endpoint = '/reviews/list/'
         url = f'{self.endpoint}'
         request = ReviewFactory.create_batch(3)
 
-
         response = api_client().get(
             self.endpoint
         )
-        if api_client().get(url).status_code == 404:
-            assert response.status_code == 404
-        else:
-            assert response.status_code == 200
-            assert len(json.loads(response.content)) == 3
+
+        assert response.status_code == 200
+        assert len(json.loads(response.content)) == 3
 
     def test_retrieve(self, api_client):
         review = ReviewFactory()
@@ -61,11 +60,9 @@ class TestReview:
         url = f'{self.endpoint}/{review.id}'
 
         response = api_client().get(url)
-        if api_client().get(url).status_code == 404:
-            assert response.status_code == 404
-        else:
-            assert response.status_code == 200
-            assert json.loads(response.content) == expected_json
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == expected_json
 
     def test_post(self, api_client):
         self.endpoint ='/reviews/create/'
@@ -88,13 +85,9 @@ class TestReview:
             data=expected_json,
             format='json'
         )
-        if api_client().post(self.endpoint,data=expected_json,format='json').status_code == 404:
-            assert response.status_code == 404
-        elif ReviewDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly and api_client().post(self.endpoint,data=expected_json,format='json').status_code==401:
-            assert response.status_code == 401
-        else:
-            assert response.status_code == 200
-            assert json.loads(response.content) == expected_json
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == expected_json
 
     def test_put(self, api_client):
         review = ReviewFactory()
@@ -116,24 +109,65 @@ class TestReview:
             review_dict,
             format='json'
         )
-        if api_client().put(url, review_dict,format='json').status_code == 404:
-            assert response.status_code == 404
-        elif ReviewDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly and api_client().put(url, review_dict,format='json').status_code == 401:
-            assert response.status_code == 401
-        else:
-            assert response.status_code == 200
-            assert json.loads(response.content) ==review_dict
+
+        assert response.status_code == 200
+        assert json.loads(response.content) ==review_dict
 
     def test_delete(self, api_client):
         review = ReviewFactory()
         self.endpoint = '/review/'+ str(review.id)
         url = self.endpoint
         response = api_client().delete(url)
-        if api_client().get(url).status_code == 404:
-            assert api_client().get(url).status_code == 404
-        elif api_client().delete(url).status_code == 401 and ReviewDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly:
-            assert api_client().delete(url).status_code == 401
-        else:
-            assert response.status_code == 204
-            assert Review.objects.all().count() == 0
 
+        assert response.status_code == 204
+        assert Review.objects.all().count() == 0
+
+    def test_list_not_found(self, api_client):
+        self.endpoint = '/review/list/'
+        review= ReviewFactory.create_batch(3)
+        response = api_client().get( self.endpoint)
+        assert response.status_code == 404
+
+    def test_retrieve_not_found(self, api_client):
+        #also works for put and post
+        self.endpoint = '/review/'
+        review= ReviewFactory()
+        self.endpoint +=str(review.id+1)
+        response = api_client().get( self.endpoint)
+        assert response.status_code == 404
+
+    def test_create_not_found(self, api_client):
+        self.endpoint = '/review/create/1'
+        review = ReviewFactory.create_batch(1)
+        response = api_client().get( self.endpoint)
+        assert response.status_code == 404
+
+    def test_put_missing_value(self,api_client):
+        #also works for retrieve and post
+        review = ReviewFactory()
+        date = str(review.created_at) + "T00:00:00Z"
+        expected_json = {
+            'id':review.id,
+            'created_at' : date,
+        }
+        assert len(expected_json) < 7
+
+    def test_unauthorized(self, api_client):
+        #works for every view if I change url
+        ReviewDetails.permission_classes = [IsAuthenticated]
+        self.endpoint ='/review/'
+        review = ReviewFactory()
+        date = str(review.created_at) + "T00:00:00Z"
+        expected_json = {
+            'id':review.id,
+            'feedback' : review.feedback,
+            'rating': review.rating,
+            'user':review.user.fullname,
+            'created_at' : date,
+            'service' : review.service.name,
+            'request' : review.request.id,
+        }
+        self.endpoint+=str(review.id)
+        response = api_client().get(self.endpoint)
+
+        assert response.status_code == 401

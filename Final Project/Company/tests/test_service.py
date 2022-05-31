@@ -28,6 +28,7 @@ def api_client():
 
 class TestService:
     endpoint = '/service'
+    ServiceDetails.permission_classes = [AllowAny]
     def test_list(self, api_client):
         self.endpoint = '/services/list/'
         url = f'{self.endpoint}'
@@ -37,11 +38,9 @@ class TestService:
         response = api_client().get(
             self.endpoint
         )
-        if api_client().get(url).status_code == 404:
-            assert response.status_code == 404
-        else:
-            assert response.status_code == 200
-            assert len(json.loads(response.content)) == 3
+
+        assert response.status_code == 200
+        assert len(json.loads(response.content)) == 3
 
     def test_retrieve(self, api_client):
         service = ServiceFactory()
@@ -55,11 +54,9 @@ class TestService:
         url = f'{self.endpoint}/{service.id}'
 
         response = api_client().get(url)
-        if api_client().get(url).status_code == 404:
-            assert response.status_code == 404
-        else:
-            assert response.status_code == 200
-            assert json.loads(response.content) == expected_json
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == expected_json
 
     def test_post(self, api_client):
         self.endpoint ='/services/create/'
@@ -72,19 +69,14 @@ class TestService:
             'company':service.company.fullname,
         }
 
-
         response = api_client().post(
             self.endpoint,
             data=expected_json,
             format='json'
         )
-        if api_client().post(self.endpoint,data=expected_json,format='json').status_code == 404:
-            assert response.status_code == 404
-        elif ServiceDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly and api_client().post(self.endpoint,data=expected_json,format='json').status_code==401:
-            assert response.status_code == 401
-        else:
-            assert response.status_code == 200
-            assert json.loads(response.content) == expected_json
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == expected_json
 
 
     def test_put(self, api_client):
@@ -103,13 +95,9 @@ class TestService:
             service_dict,
             format='json'
         )
-        if api_client().put(url, service_dict,format='json').status_code == 404:
-            assert response.status_code == 404
-        elif ServiceDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly and api_client().put(url, service_dict,format='json').status_code == 401:
-            assert response.status_code == 401
-        else:
-            assert response.status_code == 200
-            assert json.loads(response.content) ==service_dict
+
+        assert response.status_code == 200
+        assert json.loads(response.content) ==service_dict
 
 
     def test_delete(self, api_client):
@@ -117,11 +105,55 @@ class TestService:
         self.endpoint = '/service/'+ str(service.id)
         url = self.endpoint
         response = api_client().delete(url)
-        if api_client().get(url).status_code == 404:
-            assert api_client().get(url).status_code == 404
-        elif api_client().delete(url).status_code == 401 and ServiceDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly:
-            assert api_client().delete(url).status_code == 401
-        else:
-            assert response.status_code == 204
-            assert Service.objects.all().count() == 0
 
+        assert response.status_code == 204
+        assert Service.objects.all().count() == 0
+
+    def test_list_not_found(self, api_client):
+        self.endpoint = '/service/listt/'
+        url = f'{self.endpoint}'
+        service= ServiceFactory.create_batch(3)
+        response = api_client().get( self.endpoint)
+        assert response.status_code == 404
+
+    def test_retrieve_not_found(self, api_client):
+        #also works for put and post
+        self.endpoint = '/service/'
+        service = ServiceFactory()
+        self.endpoint +=str(service.id+1)
+        response = api_client().get( self.endpoint)
+        assert response.status_code == 404
+
+    def test_create_not_found(self, api_client):
+        self.endpoint = '/service/create/1'
+        service = ServiceFactory.create_batch(1)
+        response = api_client().get( self.endpoint)
+        assert response.status_code == 404
+
+    def test_put_missing_value(self,api_client):
+        #also works for retrieve and post
+        service = ServiceFactory()
+        expected_json = {
+            'category': service.category.category,
+            'id':service.id+1,
+            'cost':service.cost,
+            'company':service.company.fullname,
+        }
+        assert len(expected_json) < 5
+
+    def test_unauthorized(self, api_client):
+        #works for every view if I change url
+        ServiceDetails.permission_classes = [IsAuthenticated]
+        self.endpoint ='/service/'
+        service = ServiceFactory()
+        expected_json = {
+            'category': service.category.category,
+            'id':service.id+1,
+            'name':service.name,
+            'cost':service.cost,
+            'company':service.company.fullname,
+        }
+        self.endpoint+=str(service.id)
+        response = api_client().get(self.endpoint)
+
+        assert response.status_code == 401

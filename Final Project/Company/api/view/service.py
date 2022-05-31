@@ -3,13 +3,13 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated
 from api.serializers.service import ServiceSerializer, CategorySerializer
 from core.models import Service, User, Category
 
 
 class ServiceDetails(viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
     queryset = Service.objects.select_related('category','company').order_by("-cost")
     serializer_class = ServiceSerializer
 

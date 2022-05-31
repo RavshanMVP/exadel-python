@@ -20,7 +20,6 @@ class UserFactory(factory.django.DjangoModelFactory):
     password = factory.faker.Faker("name")
 
 
-
 @pytest.fixture
 def api_client():
     return APIClient
@@ -28,21 +27,17 @@ def api_client():
 
 class TestUser:
     endpoint = '/user'
+    UserDetails.permission_classes = [AllowAny]
     def test_list(self, api_client):
         self.endpoint = '/users/list/'
         url = f'{self.endpoint}'
         category = UserFactory.create_batch(3)
 
-
         response = api_client().get(
             self.endpoint
         )
-
-        if api_client().get(url).status_code == 404:
-            assert response.status_code == 404
-        else:
-            assert response.status_code == 200
-            assert len(json.loads(response.content)) == 3
+        assert response.status_code == 200
+        assert len(json.loads(response.content)) == 3
 
 
     def test_retrieve(self, api_client):
@@ -58,22 +53,17 @@ class TestUser:
         url = f'{self.endpoint}/{user.id}'
         response = api_client().get(url)
 
-        if api_client().get(url).status_code == 404:
-            assert response.status_code == 404
-        else:
-            assert response.status_code == 200
-            assert json.loads(response.content) == expected_json
+        assert response.status_code == 200
+        assert json.loads(response.content) == expected_json
 
     def test_post(self, api_client):
         self.endpoint ='/users/create/'
         user = UserFactory()
 
-        some_email = user.email + "1"
-        user.email = some_email
         expected_json = {
             'id':user.id+1,
             'fullname':user.fullname,
-            'email': some_email,
+            'email': user.email,
             'phone_number' : user.phone_number,
             'role':user.role.role,
             'password':user.password
@@ -85,19 +75,11 @@ class TestUser:
             data=expected_json,
             format='json'
         )
-
-        if api_client().post(self.endpoint,data=expected_json,format='json').status_code == 404:
-            assert response.status_code == 404
-        elif UserDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly and api_client().post(self.endpoint,data=expected_json,format='json').status_code==401:
-            assert response.status_code == 401
-        else:
-            assert response.status_code == 200
-            assert json.loads(response.content) == expected_json
+        assert response.status_code == 200
+        assert json.loads(response.content) == expected_json
 
     def test_put(self, api_client):
         user = UserFactory()
-        some_email = user.email + " "
-        user.email = some_email
         user_dict = {
             'id':user.id,
             'fullname':user.fullname,
@@ -113,28 +95,66 @@ class TestUser:
             user_dict,
             format='json'
         )
-        if api_client().put(url, user_dict,format='json').status_code == 404:
-            assert response.status_code == 404
-        elif UserDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly and api_client().put(url, user_dict,format='json').status_code == 401:
-            assert response.status_code == 401
-        else:
-            assert response.status_code == 200
-            assert json.loads(response.content) == user_dict
+        assert response.status_code == 200
+        assert json.loads(response.content) == user_dict
 
     def test_delete(self, api_client):
         user = UserFactory()
         self.endpoint = '/user/'+ str(user.id)
         url = self.endpoint
-
-        if api_client().get(self.endpoint).status_code == 404:
-            assert api_client().get(self.endpoint).status_code == 404
-
         response = api_client().delete(url)
 
-        if api_client().get(url).status_code == 404:
-            assert api_client().get(url).status_code == 404
-        elif api_client().delete(url).status_code == 401 and UserDetails.permission_classes == IsAuthenticated or IsAuthenticatedOrReadOnly:
-            assert api_client().delete(url).status_code == 401
-        else:
-            assert response.status_code == 204
-            assert User.objects.all().count() == 0
+        assert response.status_code == 204
+        assert User.objects.all().count() == 0
+
+    def test_list_not_found(self, api_client):
+        self.endpoint = '/users/list4/'
+        url = f'{self.endpoint}'
+        user = UserFactory.create_batch(3)
+        response = api_client().get( self.endpoint)
+        assert response.status_code == 404
+
+    def test_retrieve_not_found(self, api_client):
+        #also works for put and post
+        self.endpoint = '/users/'
+        user = UserFactory()
+        self.endpoint +=str(user.id+1)
+        response = api_client().get( self.endpoint)
+        assert response.status_code == 404
+
+    def test_create_not_found(self, api_client):
+        self.endpoint = '/users/create7/'
+        user = UserFactory.create_batch(1)
+        response = api_client().get( self.endpoint)
+        assert response.status_code == 404
+
+    def test_put_missing_value(self,api_client):
+        #also works for retrieve and post
+        user = UserFactory()
+        user_dict = {
+            'id':user.id,
+            'fullname':user.fullname,
+            'email':user.email,
+            'phone_number' : user.phone_number,
+            'password':user.password,
+        }
+        assert len(user_dict) < 6
+
+
+    def test_unauthorized(self, api_client):
+        #works for every view if I change url
+        UserDetails.permission_classes = [IsAuthenticated]
+        self.endpoint ='/user/'
+        user = UserFactory()
+        expected_json = {
+            'id':user.id+1,
+            'fullname':user.fullname,
+            'email': user.email,
+            'phone_number' : user.phone_number,
+            'role':user.role.role,
+            'password':user.password
+        }
+        self.endpoint+=str(user.id)
+        response = api_client().get(self.endpoint)
+
+        assert response.status_code == 401

@@ -31,11 +31,9 @@ class TestRole:
         response = api_client().get(
             self.endpoint
         )
-        if api_client().get(url).status_code == 404:
-            assert response.status_code == 404
-        else:
-            assert response.status_code == 200
-            assert len(json.loads(response.content)) == 3
+
+        assert response.status_code == 200
+        assert len(json.loads(response.content)) == 3
 
     def test_retrieve(self, api_client):
         role = RoleFactory()
@@ -46,8 +44,12 @@ class TestRole:
         url = f'{self.endpoint[:-2]}/{role.id}'
 
         response = api_client().get(url)
-        if api_client().get(url).status_code == 404:
-            assert response.status_code == 404
-        else:
-            assert response.status_code == 200
-            assert json.loads(response.content) == expected_json
+
+        assert response.status_code == 200
+        assert json.loads(response.content) == expected_json
+
+    def test_list_not_found(self, api_client):
+        self.endpoint = '/rolles/list/'
+        service= RoleFactory.create_batch(3)
+        response = api_client().get( self.endpoint)
+        assert response.status_code == 404
