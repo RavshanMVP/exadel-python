@@ -136,7 +136,6 @@ class TestUser:
             'email':user.email,
             'role':user.role.role,
             'password':user.password,
-            'phone_number':user.phone_number
         }
         url = f'{self.endpoint}/{user.id}'
         status = 200
@@ -147,10 +146,9 @@ class TestUser:
                 format='json',
                 HTTP_AUTHORIZATION = authorize
             )
-            assert status == 200
+            assert False
         except KeyError:
-            status = 500
-            assert status == 500
+            assert True
 
 
     def test_ReadOnly_post(self, api_client):

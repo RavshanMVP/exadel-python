@@ -95,12 +95,6 @@ class TestCategory:
         assert Category.objects.all().count() == 0
 
 
-    def test_list_not_found(self, api_client):
-        self.endpoint = '/category/list/'
-        category= CategoryFactory.create_batch(3)
-        response = api_client().get( self.endpoint)
-        assert response.status_code == 404
-
     def test_retrieve_not_found(self, api_client, authorize):
         #also works for put and post
         self.endpoint = '/service/'
@@ -109,11 +103,6 @@ class TestCategory:
         response = api_client().get( self.endpoint, HTTP_AUTHORIZATION = authorize)
         assert response.status_code == 404
 
-    def test_create_not_found(self, api_client):
-        self.endpoint = '/service/create/1'
-        category = CategoryFactory.create_batch(1)
-        response = api_client().get( self.endpoint)
-        assert response.status_code == 404
 
     def test_put_missing_value(self,api_client,authorize):
         #also works for retrieve and post
@@ -129,10 +118,9 @@ class TestCategory:
                 format='json',
                 HTTP_AUTHORIZATION = authorize
             )
-            assert status == 200
+            assert False
         except KeyError:
-            status = 500
-            assert status == 500
+            assert True
 
     def test_unauthorized(self, api_client):
         #works for every view if I change url

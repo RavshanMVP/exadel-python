@@ -130,11 +130,6 @@ class TestRequest:
         assert response.status_code == 204
         assert Request.objects.all().count() == 0
 
-    def test_list_not_found(self, api_client):
-        self.endpoint = '/request/list/'
-        request= RequestFactory.create_batch(3)
-        response = api_client().get( self.endpoint)
-        assert response.status_code == 404
 
     def test_retrieve_not_found(self, api_client, authorize):
         #also works for put and post
@@ -144,11 +139,6 @@ class TestRequest:
         response = api_client().get( self.endpoint, HTTP_AUTHORIZATION =authorize)
         assert response.status_code == 404
 
-    def test_create_not_found(self, api_client):
-        self.endpoint = '/request/create/1'
-        request = RequestFactory.create_batch(1)
-        response = api_client().get( self.endpoint)
-        assert response.status_code == 404
 
     def test_put_missing_value(self,api_client,authorize):
         response = api_client().get(self.endpoint, HTTP_AUTHORIZATION = authorize )
@@ -159,7 +149,6 @@ class TestRequest:
             'id':request.id,
             'area' : request.area,
             'cost_total': request.cost_total,
-            'user':request.user.fullname,
             'address' : request.address
         }
         status = 200
@@ -170,10 +159,9 @@ class TestRequest:
                 format='json',
                 HTTP_AUTHORIZATION = authorize
             )
-            assert status == 200
+            assert False
         except KeyError:
-            status = 500
-            assert status == 500
+            assert True
 
     def test_unauthorized(self, api_client):
         #works for every view if I change url
