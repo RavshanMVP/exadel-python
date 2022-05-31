@@ -28,7 +28,7 @@ class RequestDetails(viewsets.GenericViewSet):
         request_.address = data['address']
         request_.created_at = data['created_at']
         request_.area = data['area']
-        request_.status = RequestStatus.objects.get(id=data['status'])
+        request_.status = RequestStatus.objects.get(status=data['status'])
         request_.save()
 
         serializer = RequestSerializer(request_)
@@ -40,9 +40,9 @@ class RequestDetails(viewsets.GenericViewSet):
 
     def post(self,request):
         data = request.data
-        user = User.objects.get(id=data['user'])
-        service = Service.objects.get(id=data['service'])
-        status = RequestStatus.objects.get(id=data['status'])
+        user = User.objects.get(fullname=data['user'])
+        service = Service.objects.get(name=data['service'])
+        status = RequestStatus.objects.get(status=data['status'])
         model = Request(address = data['address'], created_at = data['created_at'], area = data ['area'], cost_total = data['cost_total'], status = status, service = service, user = user)
         model.save()
         serializer = RequestSerializer(model)

@@ -16,7 +16,5 @@ class RequestStatusDetails(viewsets.GenericViewSet):
         return Response(serializer.data)
 
     def list(self, request):
-
         serializer = RequestStatusSerializer(self.queryset, many=True)
         return Response(serializer.data)
-

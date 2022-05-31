@@ -1,6 +1,4 @@
 from rest_framework import serializers
-import sys
-sys.path.append("....")
 from core.models import Service, Category
 
 class CategorySerializer(serializers.ModelSerializer):

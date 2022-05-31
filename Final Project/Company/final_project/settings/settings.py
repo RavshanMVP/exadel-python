@@ -34,7 +34,6 @@ STATIC_URL = 'static/'
 
 INSTALLED_APPS = [
 
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -46,8 +45,6 @@ INSTALLED_APPS = [
 
     'djoser',
     'rest_framework',
-    'rest_framework.authtoken',
-    'rest_framework_simplejwt',
     'jwt',
     'debug_toolbar',
     'drf_yasg',
@@ -167,6 +164,16 @@ SIMPLE_JWT = {
 
 INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
 
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        }
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
