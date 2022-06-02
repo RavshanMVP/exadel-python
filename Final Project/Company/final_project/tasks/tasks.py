@@ -6,3 +6,7 @@ def test_calculate(self,cost, area, hours):
     result = cost * area * hours
     return result
 
+@shared_task(bind=True)
+def notify(self):
+    print("New notification")
+    return "Done"
