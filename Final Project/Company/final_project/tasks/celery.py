@@ -5,8 +5,8 @@ from random import randint
 from celery.schedules import crontab
 import os
 
-os.environ.setdefault( value='final_project.settings', key ='DJANGO_SETTINGS_MODULE',)
-app = Celery('final_project', broker='amqp://127.0.0.1:5672')
+os.environ.setdefault( value='final_project.settings.settings', key ='DJANGO_SETTINGS_MODULE',)
+app = Celery('final_project', broker='amqp://127.0.0.1:5672', backend="django-db")
 
 app.conf.enable_utc = False
 app.conf.update(timezone = 'Asia/Tashkent')
