@@ -1,0 +1,8 @@
+from celery import shared_task, Celery
+
+app = Celery('final_project', broker='amqp://127.0.0.1:5672')
+@shared_task(bind=True)
+def test_calculate(self,cost, area, hours):
+    result = cost * area * hours
+    return result
+

@@ -33,7 +33,7 @@ STATIC_URL = 'static/'
 # Application definition
 
 INSTALLED_APPS = [
-
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -49,6 +49,9 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'drf_yasg',
     'inflection',
+
+    'django_celery_results',
+    'django_celery_beat',
 
 ]
 
@@ -196,6 +199,3 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-AUTH_USER_MODEL = 'core.User'
-
