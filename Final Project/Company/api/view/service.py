@@ -1,4 +1,3 @@
-
 from rest_framework.response import Response
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
@@ -44,7 +43,8 @@ class ServiceDetails(viewsets.GenericViewSet):
         data = request.data
         company = User.objects.get(fullname=data['company'])
         category = Category.objects.get(category=data['category'])
-        model = Service(name = data['name'], cost = data['cost'], company = company, category = category)
+        model = Service(name = data['name'], cost = data['cost'], company = company,
+                        id = data['id'], category = category)
         model.save()
         serializer = ServiceSerializer(model)
         return Response(serializer.data)

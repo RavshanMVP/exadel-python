@@ -15,6 +15,9 @@ app.config_from_object(settings, namespace='CELERY')
 
 app.autodiscover_tasks()
 
+import django
+django.setup()
+
 hours = randint(1,3)
 cost = randint(5,50)
 area = randint(40,200)
@@ -30,7 +33,7 @@ area = randint(40,200)
 app.conf.beat_schedule = {
     'notification': {
         'task': 'final_project.tasks.tasks.notify',
-        'schedule':crontab(hour =  13, minute= 10) ,
+        'schedule':crontab(hour = 13, minute= 10) ,
         'args' : ()
     },
 }

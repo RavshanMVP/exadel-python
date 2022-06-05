@@ -4,7 +4,7 @@ from core.models import Request
 class RequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Request
-        fields = [ 'id','address', 'created_at', 'area','cost_total','status','user','service']
+        fields = [ 'id','address', 'created_at', 'area','cost_total','status','user','service','country','city','minutes']
 
     status = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()

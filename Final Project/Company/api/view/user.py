@@ -14,7 +14,6 @@ class UserDetails(viewsets.GenericViewSet):
     serializer_class = UserSerializer_
 
     def retrieve(self, request, pk=None):
-
         user = get_object_or_404(self.queryset, pk=pk)
         serializer = UserSerializer_(user)
         return Response(serializer.data)
@@ -32,6 +31,9 @@ class UserDetails(viewsets.GenericViewSet):
         user.fullname = data['fullname']
         user.email = data['email']
         user.phone_number = data['phone_number']
+        user.address = data['address']
+        user.city = data['city']
+        user.country = data["country"]
         user.save()
 
         serializer = UserSerializer_(user)
@@ -45,7 +47,9 @@ class UserDetails(viewsets.GenericViewSet):
 
         data = request.data
         role = Role.objects.get(role=data['role'])
-        model = User(fullname = data['fullname'], phone_number = data['phone_number'], email = data['email'], role = role, password = data['password'])
+        model = User(fullname = data['fullname'], phone_number = data['phone_number'], email = data['email'],
+                     role = role, password = data['password'], address = data['address'], city = data['city'],
+                     country = data['country'])
         model.save()
         serializer = UserSerializer_(model)
         return Response(serializer.data)

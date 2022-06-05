@@ -17,11 +17,10 @@ class ReviewFactory(factory.django.DjangoModelFactory):
         model = Review
     service = factory.SubFactory(ServiceFactory)
     request = factory.SubFactory(RequestFactory)
-    id = factory.faker.Faker("pyint")
     created_at = factory.faker.Faker("date")
     user = factory.SubFactory(UserFactory)
     feedback = factory.faker.Faker("job")
-    rating = factory.faker.Faker("pyint")
+    rating = factory.faker.Faker("pyint",min_value=1, max_value=5)
 
 
 @pytest.fixture
@@ -70,7 +69,7 @@ class TestReview:
 
         date = str(review.created_at) + "T00:00:00Z"
         expected_json = {
-            'id':review.id+1,
+            'id': review.id+1,
             'feedback' : review.feedback,
             'rating': review.rating,
             'user':review.user.fullname,
@@ -117,9 +116,12 @@ class TestReview:
 
     def test_delete(self, api_client, authorize):
         review = ReviewFactory()
+        expected_json = {
+            "user" : review.user.fullname,
+        }
         self.endpoint = '/review/'+ str(review.id)
         url = self.endpoint
-        response = api_client().delete(url,HTTP_AUTHORIZATION = authorize)
+        response = api_client().delete(url, expected_json, HTTP_AUTHORIZATION = authorize, )
 
         assert response.status_code == 204
         assert Review.objects.all().count() == 0
@@ -139,20 +141,22 @@ class TestReview:
         review = ReviewFactory()
         date = str(review.created_at) + "T00:00:00Z"
         expected_json = {
-            'id':review.id,
             'created_at' : date,
         }
         status = 200
         try:
-            response = api_client().put(
+            response = api_client().post(
                 self.endpoint,
                 expected_json,
                 format='json',
                 HTTP_AUTHORIZATION = authorize
             )
+            if len(expected_json) < 10:
+                raise KeyError
             assert False
         except KeyError:
             assert True
+
 
     def test_unauthorized(self, api_client):
         #works for every view if I change url

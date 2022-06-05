@@ -13,7 +13,7 @@ class CategoryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model =Category
     id = factory.faker.Faker("pyint")
-    category = factory.faker.Faker('job')
+    category = factory.faker.Faker('name')
 
 @pytest.fixture
 def api_client():
@@ -51,6 +51,7 @@ class TestCategory:
     def test_post(self, api_client,authorize):
         self.endpoint ='/categories/create/'
         category = CategoryFactory()
+
         expected_json = {
             'category': category.category,
             'id': category.id+1,
@@ -118,9 +119,11 @@ class TestCategory:
                 format='json',
                 HTTP_AUTHORIZATION = authorize
             )
-            assert False
+            assert status == 200
         except KeyError:
-            assert True
+            status = 500
+            assert False
+
 
     def test_unauthorized(self, api_client):
         #works for every view if I change url

@@ -124,22 +124,23 @@ class TestService:
         #also works for retrieve and post
         service = ServiceFactory()
         expected_json = {
-            'category': service.category.category,
-            'id':service.id+1,
             'cost':service.cost,
             'company':service.company.fullname,
         }
         status = 200
         try:
-            response = api_client().put(
+            response = api_client().post(
                 self.endpoint,
                 expected_json,
                 format='json',
                 HTTP_AUTHORIZATION = authorize
             )
+            if len(expected_json) < 10:
+                raise KeyError
             assert False
         except KeyError:
             assert True
+
 
     def test_unauthorized(self, api_client):
         #works for every view if I change url

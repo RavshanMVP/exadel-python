@@ -4,7 +4,8 @@ from core.models import User
 class UserSerializer_(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = [ 'id', 'fullname', 'phone_number', 'email','role','password']
+        fields = [ 'id', 'fullname', 'phone_number', 'email','role','password', 'address', 'city', 'country',
+                   'company_rating', 'ratings_count']
 
     role = serializers.SerializerMethodField()
 

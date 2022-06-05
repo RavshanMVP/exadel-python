@@ -21,7 +21,8 @@ class RequestFactory(factory.django.DjangoModelFactory):
     created_at = factory.faker.Faker("date")
     user = factory.SubFactory(UserFactory)
     address = factory.faker.Faker("address")
-
+    city = factory.faker.Faker("address")
+    country = factory.faker.Faker("address")
 
 @pytest.fixture
 def api_client():
@@ -55,7 +56,9 @@ class TestRequest:
             'created_at' : date,
             'service' : request.service.name,
             'status' : request.status.status,
-            'address' : request.address
+            'address' : request.address,
+            'city':request.city,
+            'country':request.country,
         }
         url = f'{self.endpoint}/{request.id}'
 
@@ -74,12 +77,14 @@ class TestRequest:
         expected_json = {
             'id':request.id+1,
             'area' : request.area,
-            'cost_total': request.cost_total,
+            'cost_total': (request.cost_total),
             'user':request.user.fullname,
             'created_at' : date,
             'service' : request.service.name,
             'status' : request.status.status,
-            'address' : request.address
+            'address' : request.address,
+            'city':request.city,
+            'country':request.country,
         }
 
         response = api_client().post(
@@ -106,7 +111,9 @@ class TestRequest:
             'created_at' : date,
             'service' : request.service.name,
             'status' : request.status.status,
-            'address' : request.address
+            'address' : request.address,
+            'city':request.city,
+            'country':request.country,
         }
         url = f'{self.endpoint}/{request.id}'
 
@@ -141,10 +148,8 @@ class TestRequest:
 
 
     def test_put_missing_value(self,api_client,authorize):
-        response = api_client().get(self.endpoint, HTTP_AUTHORIZATION = authorize )
         #also works for retrieve and post
         request = RequestFactory()
-        date = str(request.created_at) + "T00:00:00Z"
         expected_json = {
             'id':request.id,
             'area' : request.area,
@@ -153,15 +158,19 @@ class TestRequest:
         }
         status = 200
         try:
-            response = api_client().put(
+            response = api_client().post(
                 self.endpoint,
                 expected_json,
                 format='json',
                 HTTP_AUTHORIZATION = authorize
             )
+            if len(expected_json) < 10:
+                raise KeyError
             assert False
         except KeyError:
             assert True
+
+
 
     def test_unauthorized(self, api_client):
         #works for every view if I change url

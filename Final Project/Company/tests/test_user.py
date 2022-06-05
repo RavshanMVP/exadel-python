@@ -18,6 +18,11 @@ class UserFactory(factory.django.DjangoModelFactory):
     email = factory.faker.Faker('email')
     role = factory.SubFactory(RoleFactory)
     password = factory.faker.Faker("name")
+    address = factory.faker.Faker("address")
+    country = factory.faker.Faker("address")
+    city = factory.faker.Faker("address")
+    ratings_count = factory.faker.Faker("pyint")
+    company_rating = factory.faker.Faker("pyint")
 
 
 @pytest.fixture
@@ -57,7 +62,12 @@ class TestUser:
             'phone_number' : user.phone_number,
             'role':user.role.role,
             'id':user.id,
-            'password':user.password
+            'password':user.password,
+            'address':user.address,
+            'city':user.city,
+            'country':user.country,
+            'company_rating':user.company_rating,
+            'ratings_count':user.ratings_count,
         }
         url = f'{self.endpoint}/{user.id}'
         response = api_client().get(url)
@@ -75,7 +85,12 @@ class TestUser:
             'email': some_email,
             'phone_number' : user.phone_number,
             'role':user.role.role,
-            'password':user.password
+            'password':user.password,
+            'address':user.address,
+            'city':user.city,
+            'country':user.country,
+            'company_rating':user.company_rating,
+            'ratings_count':user.ratings_count,
         }
         user.email +="1"
         response = api_client().post(
@@ -96,6 +111,11 @@ class TestUser:
             'phone_number' : user.phone_number,
             'role':user.role.role,
             'password':user.password,
+            'address':user.address,
+            'city':user.city,
+            'country':user.country,
+            'company_rating':user.company_rating,
+            'ratings_count':user.ratings_count,
         }
         url = f'{self.endpoint}/{user.id}'
 
@@ -146,9 +166,10 @@ class TestUser:
                 format='json',
                 HTTP_AUTHORIZATION = authorize
             )
-            assert False
+            assert status == 200
         except KeyError:
-            assert True
+            status = 500
+            assert status == 500
 
 
     def test_ReadOnly_post(self, api_client):

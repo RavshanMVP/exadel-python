@@ -15,7 +15,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
-from api.view import RequestDetails, ServiceDetails, UserDetails, RoleDetails, ReviewDetails, RequestStatusDetails, CategoryDetails
+from api.view import RequestDetails, ServiceDetails, UserDetails, RoleDetails, ReviewDetails,\
+    RequestStatusDetails, CategoryDetails, ResponseDetails
 from djoser import urls
 from djoser.urls import jwt
 from rest_framework import permissions
@@ -41,6 +42,10 @@ urlpatterns = [
     path("request/<pk>", RequestDetails.as_view({'get':'retrieve','delete':'delete','put':'put'})),
     path("requests/list/", RequestDetails.as_view({'get':'list'})),
     path("requests/create/", RequestDetails.as_view({'post':'post'})),
+
+    path("response/<pk>", ResponseDetails.as_view({'get':'retrieve','delete':'delete','put':'put'})),
+    path("responses/list/", ResponseDetails.as_view({'get':'list'})),
+    path("responses/create/", ResponseDetails.as_view({'post':'post'})),
 
 # request status urls
     path("status/<pk>", RequestStatusDetails.as_view({'get':'retrieve'})),
@@ -80,7 +85,7 @@ urlpatterns = [
    re_path(r'swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
    re_path(r'redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
-
+    path("admin/",admin.site.urls),
 
 ]
 

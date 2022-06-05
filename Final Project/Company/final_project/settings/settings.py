@@ -33,7 +33,7 @@ STATIC_URL = 'static/'
 # Application definition
 
 INSTALLED_APPS = [
-
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
     'core',
     'api',
+    'final_project.tasks',
 
     'djoser',
     'rest_framework',
@@ -50,11 +51,9 @@ INSTALLED_APPS = [
     'drf_yasg',
     'inflection',
 
+
     'django_celery_results',
     'django_celery_beat',
-    'shelve',
-    'nose'
-
 ]
 
 MIDDLEWARE = [
@@ -208,3 +207,11 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Tashkent'
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_USE_TLS = True
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_HOST_USER ='ravshan020703@gmail.com'
+EMAIL_HOST_PASSWORD = "dcacbvltbzncmhhx"
