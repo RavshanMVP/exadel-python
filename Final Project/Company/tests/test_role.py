@@ -6,12 +6,12 @@ import json
 
 pytestmark = pytest.mark.django_db
 
+
 class RoleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Role
     role = factory.faker.Faker('company')
     id = factory.faker.Faker("pyint")
-
 
 
 @pytest.fixture
@@ -24,9 +24,7 @@ class TestRole:
 
     def test_list(self, api_client):
         self.endpoint = '/roles/list/'
-        url = f'{self.endpoint}'
         role = RoleFactory.create_batch(3)
-
 
         response = api_client().get(
             self.endpoint
@@ -39,7 +37,7 @@ class TestRole:
         role = RoleFactory()
         expected_json = {
             'role': role.role,
-            'id':role.id
+            'id': role.id
         }
         url = f'{self.endpoint[:-2]}/{role.id}'
 
@@ -50,6 +48,6 @@ class TestRole:
 
     def test_list_not_found(self, api_client):
         self.endpoint = '/rolles/list/'
-        service= RoleFactory.create_batch(3)
-        response = api_client().get( self.endpoint)
+        service = RoleFactory.create_batch(3)
+        response = api_client().get(self.endpoint)
         assert response.status_code == 404

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from core.models import User, Role, Request, RequestStatus, Review, Service, Category,Notification,Response
+from core.models import User, Role, Request, RequestStatus, Review, Service, Category, Notification, Response
 
 admin.site.register(User)
 admin.site.register(Role)
