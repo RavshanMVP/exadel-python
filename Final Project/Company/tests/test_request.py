@@ -25,7 +25,20 @@ class RequestFactory(factory.django.DjangoModelFactory):
     city = factory.faker.Faker("address")
     country = factory.faker.Faker("address")
     minutes = factory.faker.Faker("pyint")
-    service_list = factory.RelatedFactory(ServiceFactory)
+
+    @factory.post_generation
+    def service_list(self, create, extracted, **kwargs):
+        if not create:
+            return []
+        if extracted:
+            self.service_list.add
+
+    @factory.post_generation
+    def accepted_list(self, create, extracted, **kwargs):
+        if not create:
+            return []
+        if extracted:
+            self.accepted_list.add
 
 
 @pytest.fixture
@@ -37,9 +50,11 @@ class TestRequest:
     endpoint = '/request'
 
     def test_list(self, api_client, authorize):
+        service_list = ServiceFactory.create_batch(1)
+        accepted_list = ServiceFactory.create_batch(1)
         self.endpoint = '/requests/list/'
         url = f'{self.endpoint}'
-        request = RequestFactory.create_batch(3)
+        request = RequestFactory(service_list=service_list[0], accepted_list=accepted_list[0])
 
         response = api_client().get(
             self.endpoint,
@@ -47,11 +62,14 @@ class TestRequest:
         )
 
         assert response.status_code == 200
-        assert len(json.loads(response.content)) == 3
+        assert len(json.loads(response.content)) == 1
 
     def test_retrieve(self, api_client, authorize):
 
-        request = RequestFactory()
+        service_list = ServiceFactory.create_batch(1)
+        accepted_list = ServiceFactory.create_batch(1)
+
+        request = RequestFactory(service_list=service_list[0].id, accepted_list=accepted_list[0].id)
 
         date = str(request.created_at) + "T00:00:00Z"
         expected_json = {
@@ -66,7 +84,8 @@ class TestRequest:
             'city': request.city,
             'country': request.country,
             'minutes': request.minutes,
-            'service_list': request.service_list.name,
+            'service_list': [],
+            'accepted_list': [],
         }
         url = f'{self.endpoint}/{request.id}'
 
@@ -78,12 +97,14 @@ class TestRequest:
     def test_post(self, api_client, authorize):
 
         self.endpoint = '/requests/create/'
-        request = RequestFactory()
+        service_list = ServiceFactory.create_batch(1)
+        accepted_list = ServiceFactory.create_batch(1)
 
+        request = RequestFactory(service_list=service_list[0].id, accepted_list=accepted_list[0].id)
         date = str(request.created_at) + "T00:00:00Z"
 
         expected_json = {
-            'id': request.id,
+            'id': request.id+1,
             'area': request.area,
             'cost_total': request.cost_total,
             'user': request.user.fullname,
@@ -94,7 +115,8 @@ class TestRequest:
             'city': request.city,
             'country': request.country,
             'minutes': request.minutes,
-            'service_list': request.service_list.name,
+            'service_list': [],
+            'accepted_list': [],
         }
 
         response = api_client().post(
@@ -108,7 +130,10 @@ class TestRequest:
         assert json.loads(response.content) == expected_json
 
     def test_put(self, api_client, authorize):
-        request = RequestFactory()
+        service_list = ServiceFactory.create_batch(1)
+        accepted_list = ServiceFactory.create_batch(1)
+
+        request = RequestFactory(service_list=service_list[0].id, accepted_list=accepted_list[0].id)
 
         date = str(request.created_at) + "T00:00:00Z"
 
@@ -124,7 +149,8 @@ class TestRequest:
             'city': request.city,
             'country': request.country,
             'minutes': request.minutes,
-            'service_list': request.service_list.name,
+            'service_list': [],
+            'accepted_list': [],
         }
         url = f'{self.endpoint}/{request.id}'
 
@@ -199,6 +225,7 @@ class TestRequest:
             'country': request.country,
             'minutes': request.minutes,
             'service_list': request.service_list.name,
+            'accepted_list': request.accepted_list.name,
         }
         response = api_client().get(self.endpoint)
 

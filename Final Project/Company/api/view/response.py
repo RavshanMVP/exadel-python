@@ -3,9 +3,10 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.http import HttpResponse
 
 from api.serializers import ResponseSerializer
-from core.models import Request, Response as Resp, Service
+from core.models import Request, Response as Resp, Service, RequestStatus
 from final_project.tasks.tasks import respond, respond_negative
 
 
@@ -31,19 +32,18 @@ class ResponseDetails(viewsets.GenericViewSet):
         request_ = Request.objects.get(id=data['request'])
         service = Service.objects.get(name=data['service'])
 
-        if request_.status.status != "Accepted":
+        if request_.status.status != "In Process" or "Completed":
 
             if data["is_accepted"] == "True":
-                request_.status.status = "Accepted"
+                request_.status.status = RequestStatus(status="Accepted")
                 respond.delay(verdict=data["is_accepted"], company_name=service.company.fullname,
                               email=request_.user.email,
                               user_name=request_.user.fullname, service_name=service.name,)
             else:
-                request_.status.status = "Canceled"
+                request_.status.status = RequestStatus(status="Cancelled")
                 respond_negative.delay(company_name=service.company.fullname, email=request_.user.email,
                                        user_name=request_.user.fullname, service_name=service.name)
 
-            request_.status.save()
             request_.save()
             model = Resp(is_accepted=data["is_accepted"], request=request_, service=service)
             model.save()
@@ -65,27 +65,30 @@ class ResponseDetails(viewsets.GenericViewSet):
         request_ = Request.objects.get(id=data['request'])
         service = Service.objects.get(name=data['service'])
 
-        if request_.status.status != "Accepted":
+        if service in request_.service_list.all():
+            if request_.status.status in ["Pending", "Accepted", "Canceled"]:
 
-            if data["is_accepted"] == "True":
-                request_.status.status = "Accepted"
-                respond.delay(verdict=data["is_accepted"], company_name=service.company.fullname,
-                              email=request_.user.email,
-                              user_name=request_.user.fullname, service_name=service.name,)
+                if data["is_accepted"] == "True":
+                    request_.status.status = RequestStatus(status="Accepted")
+                    # respond.delay(verdict=data["is_accepted"], company_name=service.company.fullname,
+                    #               email=request_.user.email,
+                    #               user_name=request_.user.fullname, service_name=service.name,)
+
+                    request_.save()
+                    request_.accepted_list.add(service)
+
+                else:
+                    request_.status.status = RequestStatus(status="Cancelled")
+                    respond_negative.delay(company_name=service.company.fullname, email=request_.user.email,
+                                           user_name=request_.user.fullname, service_name=service.name)
+
+                    request_.save()
+                model = Resp(is_accepted=data["is_accepted"], request=request_, service=service)
+                model.save()
+                serializer = ResponseSerializer(model)
+
+                return Response(serializer.data)
             else:
-                request_.status.status = "Canceled"
-                respond_negative.delay(company_name=service.company.fullname, email=request_.user.email,
-                                       user_name=request_.user.fullname, service_name=service.name)
-
-            request_.status.save()
-            request_.save()
-            model = Resp(is_accepted=data["is_accepted"], request=request_, service=service)
-            model.save()
-            serializer = ResponseSerializer(model)
-
-            return Response(serializer.data)
+                return HttpResponse("order is already completed")
         else:
-            model = Resp(is_accepted="False", request=request_, service=service)
-            model.save()
-            serializer = ResponseSerializer(model)
-            return Response(serializer.data)
+            return HttpResponse("Your service is not in order list")

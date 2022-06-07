@@ -30,7 +30,7 @@ class User(AbstractBaseUser, PermissionsMixin):  # model, which extends capabili
     city = models.CharField("City", null=False, default="", max_length=50)
     address = models.TextField("Full address", null=False, default="")
 
-    company_rating = models.FloatField("Average star rating for company", null=True)
+    company_rating = models.FloatField("Average star rating for company", default=0)
     ratings_count = models.PositiveSmallIntegerField("Number of reviews", default=0)
 
     def __str__(self):

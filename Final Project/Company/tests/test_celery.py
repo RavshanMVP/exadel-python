@@ -1,4 +1,4 @@
-from final_project.tasks.tasks import calculate, notify, send_notification
+from final_project.tasks.tasks import calculate, notify, send_notification, respond, respond_negative
 from final_project.tasks.celery import debug_task
 from random import randint
 import pytest
@@ -30,3 +30,11 @@ class TestCelery:
         result = send_notification.delay(email="1@gmail.com", recipient="2@gmail.com", category="", address="", phone="",
                                          service_name="", company_name="", user_name="", cost_total="")
         assert result.get() == "Done"
+
+    def test_respond(self,celery_worker):
+        result = respond.delay(verdict="!", company_name="1",service_name="1",user_name=1,email="1")
+        assert result.get() == "Sent"
+
+    def test_respond_negative(self,celery_worker):
+        result = respond_negative.delay(company_name="1",service_name="1",user_name=1,email="1")
+        assert result.get() == "Sent"

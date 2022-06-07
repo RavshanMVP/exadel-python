@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from api.serializers.user import UserSerializer_
 from core.models import User, Role
 from core.utility import UserFilter
+import json
 
 
 class UserDetails(viewsets.GenericViewSet):
@@ -18,7 +19,7 @@ class UserDetails(viewsets.GenericViewSet):
     serializer_class = UserSerializer_
 
     def filter_queryset(self, queryset):
-        filter_backends = (DjangoFilterBackend, )
+        filter_backends = (DjangoFilterBackend,)
         for backend in list(filter_backends):
             queryset = backend().filter_queryset(self.request, queryset, view=self)
         return queryset
@@ -26,6 +27,10 @@ class UserDetails(viewsets.GenericViewSet):
     def retrieve(self, request, pk=None):
         user = get_object_or_404(self.queryset, pk=pk)
         serializer = UserSerializer_(user)
+        if user.role.role == "user":
+            serializer.fields.pop("company_rating")
+            serializer.fields.pop("ratings_count")
+
         return Response(serializer.data)
 
     def delete(self, request, pk, format=None):
@@ -46,11 +51,22 @@ class UserDetails(viewsets.GenericViewSet):
         user.save()
 
         serializer = UserSerializer_(user)
+        if user.role.role == "user":
+            serializer.fields.pop("company_rating")
+            serializer.fields.pop("ratings_count")
+
         return Response(serializer.data)
 
     def list(self, request):
-        serializer = UserSerializer_(self.filter_queryset(self.queryset), many=True)
-        return Response(serializer.data)
+        lst = []
+        users = User.objects.all()
+        for user in users:
+            serializer = UserSerializer_(user)
+            if user.role.role == "user":
+                serializer.fields.pop("company_rating")
+                serializer.fields.pop("ratings_count")
+            lst.append(serializer.data)
+        return Response(lst)
 
     def post(self, request):
 
@@ -61,4 +77,7 @@ class UserDetails(viewsets.GenericViewSet):
                      country=data['country'])
         model.save()
         serializer = UserSerializer_(model)
+        if model.role.role == "user":
+            serializer.fields.pop("company_rating")
+            serializer.fields.pop("ratings_count")
         return Response(serializer.data)
