@@ -67,9 +67,12 @@ class TestUser:
             'address': user.address,
             'city': user.city,
             'country': user.country,
-            'company_rating': user.company_rating,
-            'ratings_count': user.ratings_count,
         }
+
+        if user.role.role == "Comp":
+            expected_json['company_rating'] = 0.0
+            expected_json['ratings_count'] = 0
+
         url = f'{self.endpoint}/{user.id}'
         response = api_client().get(url)
 
@@ -90,9 +93,12 @@ class TestUser:
             'address': user.address,
             'city': user.city,
             'country': user.country,
-            'company_rating': user.company_rating,
-            'ratings_count': user.ratings_count,
         }
+
+        if user.role.role == "Comp":
+            expected_json['company_rating'] = 0.0
+            expected_json['ratings_count'] = 0
+
         user.email += "1"
         response = api_client().post(
             self.endpoint,
@@ -115,9 +121,12 @@ class TestUser:
             'address': user.address,
             'city': user.city,
             'country': user.country,
-            'company_rating': user.company_rating,
-            'ratings_count': user.ratings_count,
         }
+
+        if user.role.role == "Comp":
+            user_dict['company_rating'] = 0.0
+            user_dict['ratings_count'] = 0
+
         url = f'{self.endpoint}/{user.id}'
 
         response = api_client().put(

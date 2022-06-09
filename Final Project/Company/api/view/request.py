@@ -5,17 +5,18 @@ from rest_framework import viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.http import HttpResponse
+from django.utils import timezone
 
 from api.serializers import RequestSerializer
 from core.models import Request, User, Service, RequestStatus
 from core.utility import RequestFilter
-from final_project.tasks.tasks import send_notification
+from final_project.tasks.tasks import send_notification, confirm, change_status
 
 
 class RequestDetails(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = Request.objects.select_related('user', 'final_service', 'status')\
-                .prefetch_related('accepted_list', 'service_list').order_by("-created_at")
+    queryset = Request.objects.select_related('user', 'final_service', 'status') \
+        .prefetch_related('accepted_list', 'service_list').order_by("-created_at")
     serializer_class = RequestSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = RequestFilter
@@ -39,64 +40,118 @@ class RequestDetails(viewsets.GenericViewSet):
     def put(self, request, pk, format=None):
         data = request.data
         request_ = get_object_or_404(self.queryset, pk=pk)
-
+        request_.created_at = timezone.now()
         if request_.status.status == "Pending":
-
+            filter = data["is_filtered"]
             request_.address = data['address']
             request_.country = data['country']
             request_.city = data['city']
-            request_.created_at = data['created_at']
+
             request_.area = data['area']
             request_.minutes = data['minutes']
             request_.save()
 
-            for service in data["service_list"]:
-                service_obj = Service.objects.get(name=service["name"])
-                request_.service_list.add(service_obj)
-                send_notification.delay(service_name=service_obj.name, recipient=service_obj.company.email,
-                                        address=request_.user.country + " " + request_.user.city
-                                        + " " + request_.user.address, company_name=service_obj.company.fullname,
-                                        user_name=request_.user.fullname, category=str(service_obj.category.category),
-                                        cost_total=(float(data["area"]) * float(service_obj.cost)),
-                                        phone=request_.user.phone_number, email=request_.user.email)
+            if filter == str(True):
+                services = Service.objects.filter(company__role__role="Comp",
+                                                  category__category=data["search_category"],
+                                                  cost__lte=float(request_.max_cost),
+                                                  company__company_rating__gte=request_.min_rating,
+                                                  company__city=data["city"], company__country=data["country"])
+                for service in services:
+                    request_.service_list.add(service)
+            else:
+                for service in data["service_list"]:
+                    service_obj = Service.objects.get(name=service["name"])
+                    request_.service_list.add(service_obj)
+                    # send_notification.delay(service_name=service_obj.name, recipient=service_obj.company.email,
+                    #                         address=request_.user.country + " " + request_.user.city
+                    #                         + " " + request_.user.address, company_name=service_obj.company.fullname,
+                    #                         user_name=request_.user.fullname, category=str(service_obj.category.category),
+                    #                         cost_total=(float(data["area"]) * float(service_obj.cost)),
+                    #                         phone=request_.user.phone_number, email=request_.user.email)
 
         elif request_.status.status == "Accepted":
             request_.final_service = Service.objects.get(name=data['final_service'])
-            if request_.final_service in request_.service_list.all():
+            if request_.final_service in request_.service_list.all() \
+                    and request_.final_service in request_.accepted_list.all():
                 request_.status = RequestStatus.objects.get(status="In process")
                 request_.cost_total = float(request_.final_service.cost) * float(request_.area)
-
                 request_.save()
+
+                confirm.delay(company_name=request_.final_service.company.fullname,
+                              service_name=request_.final_service.name,
+                              user_name=request_.user.fullname, email=request_.final_service.company.email)
             else:
                 return HttpResponse("The company of the service hasn't responded yet or denied your offer")
 
         serializer = RequestSerializer(request_)
+        serializer.fields.pop("is_filtered")
+        serializer.fields.pop("search_category")
+        serializer.fields.pop("min_rating")
+        serializer.fields.pop("max_cost")
+        serializer.fields.pop("cost_total")
+
+        if request_.status.status == "Pending":
+            serializer.fields.pop("final_service")
+        else:
+            serializer.fields.pop("service_list")
+            serializer.fields.pop("accepted_list")
 
         return Response(serializer.data)
 
     def list(self, request):
-        serializer = RequestSerializer(self.filter_queryset(self.queryset), many=True)
-        return Response(serializer.data)
+        lst = []
+        requests = self.filter_queryset(self.queryset)
+        for request in requests:
+            serializer = RequestSerializer(request)
+            serializer.fields.pop("is_filtered")
+            serializer.fields.pop("search_category")
+            serializer.fields.pop("min_rating")
+            serializer.fields.pop("max_cost")
+            serializer.fields.pop("cost_total")
+            serializer.fields.pop("service_list")
+            serializer.fields.pop("accepted_list")
+
+            if request.status.status == "Pending":
+                serializer.fields.pop("final_service")
+
+            lst.append(serializer.data)
+        return Response(lst)
 
     def post(self, request):
         data = request.data
         user = User.objects.get(fullname=data['user'])
         status = RequestStatus.objects.get(status=data['status'])
+        filter = data["is_filtered"]
 
-        model = Request(address=data['address'], created_at=data['created_at'], minutes=data['minutes'],
+        model = Request(address=data['address'], minutes=data['minutes'], created_at=timezone.now(),
                         area=data['area'], city=data['city'], country=data['country'],
-                        cost_total=data['cost_total'], user=user, status=status)
+                        user=user, status=status, is_filtered=filter)
         model.save()
 
-        for service in data["service_list"]:
-            service_obj = Service.objects.get(name=service["name"])
-            model.service_list.add(service_obj)
+        if filter == str(True):
+            services = Service.objects.filter(company__role__role="Comp", category__category=data["search_category"],
+                                              cost__lte=float(model.max_cost),
+                                              company__company_rating__gte=model.min_rating,
+                                              company__city=data["city"], company__country=data["country"])
+            for service in services:
+                model.service_list.add(service)
+        else:
+            for service in data["service_list"]:
+                service_obj = Service.objects.get(name=service["name"])
+                model.service_list.add(service_obj)
 
-            send_notification.delay(service_name=service_obj.name, recipient=service_obj.company.email,
-                                    address=user.country + " " + user.city + " " + user.address,
-                                    company_name=service_obj.company.fullname, user_name=user.fullname,
-                                    category=str(service_obj.category.category),
-                                    cost_total=(float(data["area"]) * float(service_obj.cost)),
-                                    phone=user.phone_number, email=user.email)
+                # send_notification.delay(service_name=service_obj.name, recipient=service_obj.company.email,
+                #                         address=user.country + " " + user.city + " " + user.address,
+                #                         company_name=service_obj.company.fullname, user_name=user.fullname,
+                #                         category=str(service_obj.category.category),
+                #                         cost_total=(float(data["area"]) * float(service_obj.cost)),
+                #                         phone=user.phone_number, email=user.email)
         serializer = RequestSerializer(model)
+        serializer.fields.pop("accepted_list")
+        serializer.fields.pop("search_category")
+        serializer.fields.pop("min_rating")
+        serializer.fields.pop("max_cost")
+        serializer.fields.pop("cost_total")
+        serializer.fields.pop("final_service")
         return Response(serializer.data)

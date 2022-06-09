@@ -3,6 +3,7 @@ import json
 import factory
 import pytest
 from rest_framework.test import APIClient
+from django.utils import timezone
 
 from core.models import Review
 from . import UserFactory, ServiceFactory, RequestFactory
@@ -15,7 +16,7 @@ class ReviewFactory(factory.django.DjangoModelFactory):
         model = Review
     service = factory.SubFactory(ServiceFactory)
     request = factory.SubFactory(RequestFactory)
-    created_at = factory.faker.Faker("date")
+    created_at = timezone.now()
     user = factory.SubFactory(UserFactory)
     feedback = factory.faker.Faker("job")
     rating = factory.faker.Faker("pyint", min_value=1, max_value=5)
@@ -45,7 +46,7 @@ class TestReview:
     def test_retrieve(self, api_client, authorize):
         review = ReviewFactory()
 
-        date = str(review.created_at) + "T00:00:00Z"
+        date = str(review.created_at)[:10]
         expected_json = {
             'id': review.id,
             'feedback': review.feedback,
@@ -59,14 +60,17 @@ class TestReview:
 
         response = api_client().get(url, HTTP_AUTHORIZATION=authorize)
 
+        json_response = json.loads(response.content)
+        json_response["created_at"] = expected_json["created_at"]
+
         assert response.status_code == 200
-        assert json.loads(response.content) == expected_json
+        assert json_response == expected_json
 
     def test_post(self, api_client, authorize):
         self.endpoint = '/reviews/create/'
         review = ReviewFactory()
 
-        date = str(review.created_at) + "T00:00:00Z"
+        date = str(review.created_at)[:10]
         expected_json = {
             'id': review.id+1,
             'feedback': review.feedback,
@@ -84,13 +88,16 @@ class TestReview:
             HTTP_AUTHORIZATION=authorize
         )
 
+        json_response = json.loads(response.content)
+        json_response["created_at"] = expected_json["created_at"]
+
         assert response.status_code == 200
-        assert json.loads(response.content) == expected_json
+        assert json_response  == expected_json
 
     def test_put(self, api_client, authorize):
         review = ReviewFactory()
 
-        date = str(review.created_at) + "T00:00:00Z"
+        date = str(review.created_at)
         review_dict = {
             'id': review.id,
             'feedback': review.feedback,
@@ -101,7 +108,6 @@ class TestReview:
             'request': review.request.id,
         }
         url = f'{self.endpoint}/{review.id}'
-
         response = api_client().put(
             url,
             review_dict,
@@ -109,8 +115,10 @@ class TestReview:
             HTTP_AUTHORIZATION=authorize
         )
 
+        json_response = json.loads(response.content)
+        json_response["created_at"] = review_dict["created_at"]
         assert response.status_code == 200
-        assert json.loads(response.content) == review_dict
+        assert json_response == review_dict
 
     def test_delete(self, api_client, authorize):
         review = ReviewFactory()

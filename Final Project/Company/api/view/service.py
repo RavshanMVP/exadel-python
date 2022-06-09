@@ -18,7 +18,7 @@ class ServiceDetails(viewsets.GenericViewSet):
     filterset_class = ServiceFilter
 
     def filter_queryset(self, queryset):
-        filter_backends = (DjangoFilterBackend, )
+        filter_backends = (DjangoFilterBackend,)
         for backend in list(filter_backends):
             queryset = backend().filter_queryset(self.request, queryset, view=self)
         return queryset
@@ -38,8 +38,6 @@ class ServiceDetails(viewsets.GenericViewSet):
         service = get_object_or_404(self.queryset, pk=pk)
         service.name = data['name']
         service.cost = int(data['cost'])
-        service.company = User.objects.get(fullname=data['company'])
-        service.category = Category.objects.get(category=data['category'])
         service.save()
 
         serializer = ServiceSerializer(service)
@@ -52,12 +50,13 @@ class ServiceDetails(viewsets.GenericViewSet):
     def post(self, request):
         data = request.data
         company = User.objects.get(fullname=data['company'])
-        category = Category.objects.get(category=data['category'])
-        model = Service(name=data['name'], cost=data['cost'], company=company,
-                        id=data['id'], category=category)
-        model.save()
-        serializer = ServiceSerializer(model)
-        return Response(serializer.data)
+        if company.role.role == "Comp":
+            category = Category.objects.get(category=data['category'])
+            model = Service(name=data['name'], cost=data['cost'], company=company,
+                            id=data['id'], category=category)
+            model.save()
+            serializer = ServiceSerializer(model)
+            return Response(serializer.data)
 
 
 class CategoryDetails(viewsets.GenericViewSet):

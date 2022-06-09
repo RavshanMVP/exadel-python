@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
+from django.utils import timezone
 from api.serializers import ReviewSerializer
 from core.models import Review, User, Request, Service
 from core.utility import ReviewFilter
@@ -72,7 +72,10 @@ class ReviewDetails(viewsets.GenericViewSet):
         service = Service.objects.get(name=data['service'])
         request = Request.objects.get(id=data['request'])
 
-        if (service.company.ratings_count > 0):
+        if int(data["rating"]) < 1 or int(data["rating"]) > 5:
+            raise ValueError("Ratings must be in the range from 1 to 5")
+
+        if service.company.ratings_count > 0:
             service.company.company_rating = (float(service.company.company_rating) * float(
                 service.company.ratings_count) + float(data["rating"])) / float(service.company.ratings_count + 1)
         else:
@@ -80,7 +83,7 @@ class ReviewDetails(viewsets.GenericViewSet):
         service.company.ratings_count += 1
 
         service.company.save()
-        model = Review(rating=data['rating'], feedback=data['feedback'], created_at=data['created_at'],
+        model = Review(rating=data['rating'], feedback=data['feedback'],
                        user=user, service=service, request=request)
 
         model.save()

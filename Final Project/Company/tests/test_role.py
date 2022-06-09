@@ -10,7 +10,7 @@ pytestmark = pytest.mark.django_db
 class RoleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Role
-    role = factory.faker.Faker('company')
+    role = factory.Iterator(["user", "Comp"])
     id = factory.faker.Faker("pyint")
 
 

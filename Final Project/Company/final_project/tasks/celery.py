@@ -24,20 +24,15 @@ cost = randint(5, 50)
 area = randint(40, 200)
 
 # app.conf.beat_schedule = {
+#
 #     'calculate': {
-#         'task': 'final_project.tasks.tasks.test_calculate',
-#         'schedule': 30,
-#         'args': (cost, area, hours)
+#         'task': 'final_project.tasks.tasks.notify',
+#         'schedule': 10,
+#         'args': ()
+#
 #     },
 # }
 
-app.conf.beat_schedule = {
-    'notification': {
-        'task': 'final_project.tasks.tasks.notify',
-        'schedule': crontab(hour=13, minute=10),
-        'args': ()
-    },
-}
 
 
 @app.task(bind=True)

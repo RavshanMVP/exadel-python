@@ -7,7 +7,8 @@ class RequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Request
         fields = ['id', 'address', 'created_at', 'area', 'cost_total', 'status', 'user', 'final_service', 'country',
-                  'city', 'minutes', 'service_list', 'accepted_list']
+                  'city', 'minutes', 'service_list', 'accepted_list',
+                  'is_filtered', 'min_rating', 'max_cost', 'search_category']
 
     status = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()

@@ -1,8 +1,10 @@
 import json
+from datetime import datetime
 
 import factory
 import pytest
 from rest_framework.test import APIClient
+from django.utils import timezone
 
 from core.models import Request
 from . import UserFactory, ServiceFactory, RequestStatusFactory
@@ -19,12 +21,16 @@ class RequestFactory(factory.django.DjangoModelFactory):
     id = factory.faker.Faker("pyint")
     cost_total = factory.faker.Faker("pyint")
     area = factory.faker.Faker("pyint")
-    created_at = factory.faker.Faker("date")
+    created_at = factory.LazyFunction(timezone.now)
     user = factory.SubFactory(UserFactory)
     address = factory.faker.Faker("address")
     city = factory.faker.Faker("address")
     country = factory.faker.Faker("address")
     minutes = factory.faker.Faker("pyint")
+    is_filtered = factory.faker.Faker("pybool")
+    search_category = factory.faker.Faker("job")
+    min_rating = factory.faker.Faker("pyint", min_value=1, max_value=5)
+    max_cost = factory.faker.Faker("pyint")
 
     @factory.post_generation
     def service_list(self, create, extracted, **kwargs):
@@ -71,7 +77,7 @@ class TestRequest:
 
         request = RequestFactory(service_list=service_list[0].id, accepted_list=accepted_list[0].id)
 
-        date = str(request.created_at) + "T00:00:00Z"
+        date = str(timezone.now())
         expected_json = {
             'id': request.id,
             'area': request.area,
@@ -86,13 +92,20 @@ class TestRequest:
             'minutes': request.minutes,
             'service_list': [],
             'accepted_list': [],
+            'search_category': request.search_category,
+            'min_rating': request.min_rating,
+            'max_cost': request.max_cost,
+            'is_filtered': request.is_filtered,
         }
         url = f'{self.endpoint}/{request.id}'
 
         response = api_client().get(url, HTTP_AUTHORIZATION=authorize)
 
+        json_response = json.loads(response.content)
+        json_response["created_at"] = expected_json["created_at"]
+
         assert response.status_code == 200
-        assert json.loads(response.content) == expected_json
+        assert json_response == expected_json
 
     def test_post(self, api_client, authorize):
 
@@ -101,22 +114,20 @@ class TestRequest:
         accepted_list = ServiceFactory.create_batch(1)
 
         request = RequestFactory(service_list=service_list[0].id, accepted_list=accepted_list[0].id)
-        date = str(request.created_at) + "T00:00:00Z"
+        date = str(timezone.now())
 
         expected_json = {
             'id': request.id+1,
             'area': request.area,
-            'cost_total': request.cost_total,
             'user': request.user.fullname,
             'created_at': date,
-            'final_service': request.final_service.name,
             'status': request.status.status,
             'address': request.address,
             'city': request.city,
             'country': request.country,
             'minutes': request.minutes,
             'service_list': [],
-            'accepted_list': [],
+            'is_filtered': request.is_filtered,
         }
 
         response = api_client().post(
@@ -126,8 +137,11 @@ class TestRequest:
             HTTP_AUTHORIZATION=authorize,
         )
 
+        json_response = json.loads(response.content)
+        json_response["created_at"] = expected_json["created_at"]
+
         assert response.status_code == 200
-        assert json.loads(response.content) == expected_json
+        assert json_response == expected_json
 
     def test_put(self, api_client, authorize):
         service_list = ServiceFactory.create_batch(1)
@@ -135,23 +149,26 @@ class TestRequest:
 
         request = RequestFactory(service_list=service_list[0].id, accepted_list=accepted_list[0].id)
 
-        date = str(request.created_at) + "T00:00:00Z"
+        date = str(timezone.now())
 
         request_dict = {
             'id': request.id,
             'area': request.area,
-            'cost_total': request.cost_total,
             'user': request.user.fullname,
             'created_at': date,
-            'final_service': request.final_service.name,
             'status': request.status.status,
             'address': request.address,
             'city': request.city,
             'country': request.country,
             'minutes': request.minutes,
-            'service_list': [],
-            'accepted_list': [],
         }
+
+        if request.status.status == "Pending":
+            request_dict['service_list'] = [],
+            request_dict['is_filtered'] = request.is_filtered
+        else:
+            request_dict['final_service'] = request.final_service.name
+
         url = f'{self.endpoint}/{request.id}'
 
         response = api_client().put(
@@ -161,8 +178,11 @@ class TestRequest:
             HTTP_AUTHORIZATION=authorize,
         )
 
+        json_response = json.loads(response.content)
+        json_response["created_at"] = request_dict["created_at"]
+
         assert response.status_code == 200
-        assert json.loads(response.content) == request_dict
+        assert json_response == request_dict
 
     def test_delete(self, api_client, authorize):
         request = RequestFactory()
@@ -226,6 +246,9 @@ class TestRequest:
             'minutes': request.minutes,
             'service_list': request.service_list.name,
             'accepted_list': request.accepted_list.name,
+            'min_rating': request.min_rating,
+            'max_cost': request.max_cost,
+            'is_filtered': request.is_filtered,
         }
         response = api_client().get(self.endpoint)
 
