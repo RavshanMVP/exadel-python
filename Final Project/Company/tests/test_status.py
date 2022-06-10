@@ -13,7 +13,7 @@ pytestmark = pytest.mark.django_db
 class RequestStatusFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = RequestStatus
-    status = factory.Iterator(["Pending", "Canceled", "Completed", "In process", "Accepted"])
+    status = factory.Iterator(["Pending"])
     id = factory.faker.Faker("pyint")
 
 

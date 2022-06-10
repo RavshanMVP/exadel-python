@@ -17,8 +17,7 @@ class RequestSerializer(serializers.ModelSerializer):
     accepted_list = ServiceSerializer(read_only=False, many=True)
 
     def get_status(self, requests):
-        if requests.status is not None:
-            return requests.status.status
+        return requests.status.status
 
     def get_user(self, requests):
         return requests.user.fullname

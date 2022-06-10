@@ -54,7 +54,7 @@ class RequestDetails(viewsets.GenericViewSet):
         request_ = get_object_or_404(self.queryset, pk=pk)
         request_.created_at = timezone.now()
         if request_.status.status == "Pending":
-            filter = data["is_filtered"]
+
             request_.address = data['address']
             request_.country = data['country']
             request_.city = data['city']
@@ -63,7 +63,7 @@ class RequestDetails(viewsets.GenericViewSet):
             request_.minutes = data['minutes']
             request_.save()
 
-            if filter == str(True):
+            if data["is_filtered"] == str(True) or True:
                 services = Service.objects.filter(company__role__role="Comp",
                                                   category__category=data["search_category"],
                                                   cost__lte=float(request_.max_cost),
@@ -141,10 +141,10 @@ class RequestDetails(viewsets.GenericViewSet):
         data = request.data
         user = User.objects.get(fullname=data['user'],)
         filter = data["is_filtered"]
-        status = RequestStatus.objects.get(status="Pending")
+
         model = Request(address=data['address'], minutes=data['minutes'], created_at=timezone.now(),
                         area=data['area'], city=data['city'], country=data['country'],
-                        user=user, is_filtered=filter, status=status)
+                        user=user, is_filtered=filter, status=RequestStatus.objects.get(status="Pending"))
         model.save()
 
         if filter == str(True):

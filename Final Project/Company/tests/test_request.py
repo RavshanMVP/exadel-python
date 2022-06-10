@@ -6,7 +6,7 @@ import pytest
 from rest_framework.test import APIClient
 from django.utils import timezone
 
-from core.models import Request
+from core.models import Request, RequestStatus
 from . import UserFactory, ServiceFactory, RequestStatusFactory
 from . import authorize
 pytestmark = pytest.mark.django_db
@@ -83,12 +83,13 @@ class TestRequest:
             'area': request.area,
             'user': request.user.fullname,
             'created_at': date,
-            'final_service': request.final_service.name,
             'status': request.status.status,
             'address': request.address,
             'city': request.city,
             'country': request.country,
             'minutes': request.minutes,
+            'service_list': [],
+            'accepted_list': [],
         }
         url = f'{self.endpoint}/{request.id}'
 
@@ -114,13 +115,13 @@ class TestRequest:
             'area': request.area,
             'user': request.user.fullname,
             'created_at': date,
-            'status': request.status.status,
             'address': request.address,
             'city': request.city,
             'country': request.country,
             'minutes': request.minutes,
             'service_list': [],
             'is_filtered': request.is_filtered,
+            'status': request.status.status,
         }
 
         response = api_client().post(
@@ -154,6 +155,7 @@ class TestRequest:
             'city': request.city,
             'country': request.country,
             'minutes': request.minutes,
+            'search_category': request.search_category,
         }
 
         if request.status.status == "Pending":
