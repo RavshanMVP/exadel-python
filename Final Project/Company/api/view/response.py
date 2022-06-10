@@ -4,10 +4,12 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend
 
 import datetime
 from django.utils import timezone
 
+from core.utility.filters import ResponseFilter
 from api.serializers import ResponseSerializer
 from core.models import Request, Response as Resp, Service, RequestStatus
 from final_project.tasks.tasks import respond, respond_negative
@@ -17,6 +19,14 @@ class ResponseDetails(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Resp.objects.select_related('request')
     serializer_class = ResponseSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ResponseFilter
+
+    def filter_queryset(self, queryset):
+        filter_backends = (DjangoFilterBackend,)
+        for backend in list(filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, view=self)
+        return queryset
 
     def retrieve(self, request, pk=None):
         response = get_object_or_404(self.queryset, pk=pk)
@@ -38,18 +48,18 @@ class ResponseDetails(viewsets.GenericViewSet):
         if request_.status.status != "Completed" and request_.status.status != "In process":
             if data["is_accepted"] == "True":
                 request_.status.status = RequestStatus(status="Accepted")
-                # respond.delay(verdict=data["is_accepted"], company_name=service.company.fullname,
-                #               email=request_.user.email,
-                #               user_name=request_.user.fullname, service_name=service.name,)
+                respond.delay(verdict=data["is_accepted"], company_name=service.company.fullname,
+                              email=request_.user.email,
+                              user_name=request_.user.fullname, service_name=service.name,)
             else:
                 request_.status.status = RequestStatus(status="Cancelled")
-                # respond_negative.delay(company_name=service.company.fullname, email=request_.user.email,
-                #                        user_name=request_.user.fullname, service_name=service.name)
+                respond_negative.delay(company_name=service.company.fullname, email=request_.user.email,
+                                       user_name=request_.user.fullname, service_name=service.name)
 
             request_.save()
 
         elif request_.status.status == "In process":
-            response.is_completed = data["completed"]
+            response.is_completed = data["is_completed"]
             time_change = datetime.timedelta(minutes=int(request_.minutes))
             new_time = request_.created_at + time_change
 
@@ -67,7 +77,7 @@ class ResponseDetails(viewsets.GenericViewSet):
         return Response(serializer.data)
 
     def list(self, request):
-        serializer = ResponseSerializer(self.queryset, many=True)
+        serializer = ResponseSerializer(self.filter_queryset(self.queryset), many=True)
         return Response(serializer.data)
 
     def post(self, request):
@@ -77,20 +87,21 @@ class ResponseDetails(viewsets.GenericViewSet):
 
         if service in request_.service_list.all():
             if request_.status.status in ["Pending", "Accepted", "Canceled"]:
-
+                request_.service_list.remove(service)
                 if data["is_accepted"] == "True":
                     request_.status = RequestStatus.objects.get(status="Accepted")
-                    # respond.delay(verdict=data["is_accepted"], company_name=service.company.fullname,
-                    #               email=request_.user.email,
-                    #               user_name=request_.user.fullname, service_name=service.name,)
+                    respond.delay(verdict=data["is_accepted"], company_name=service.company.fullname,
+                                  email=request_.user.email,
+                                  user_name=request_.user.fullname, service_name=service.name,)
 
                     request_.save()
                     request_.accepted_list.add(service)
 
                 else:
-                    request_.status = RequestStatus.objects.get(status="Cancelled")
-                    # respond_negative.delay(company_name=service.company.fullname, email=request_.user.email,
-                    #                        user_name=request_.user.fullname, service_name=service.name)
+                    if request_.service_list.count() == 0 and request_.accepted_list.count() == 0:
+                        request_.status = RequestStatus.objects.get(status="Cancelled")
+                    respond_negative.delay(company_name=service.company.fullname, email=request_.user.email,
+                                           user_name=request_.user.fullname, service_name=service.name)
 
                     request_.save()
                 model = Resp(is_accepted=data["is_accepted"], request=request_, service=service)

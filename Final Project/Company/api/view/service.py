@@ -85,7 +85,7 @@ class CategoryDetails(viewsets.GenericViewSet):
         return Response(serializer.data)
 
     def list(self, request):
-        serializer = CategorySerializer(self.queryset, many=True)
+        serializer = CategorySerializer(self.filter_queryset(self.queryset), many=True)
         return Response(serializer.data)
 
     def post(self, request):

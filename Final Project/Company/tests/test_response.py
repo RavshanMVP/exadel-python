@@ -19,6 +19,7 @@ class ResponseFactory(factory.django.DjangoModelFactory):
     id = factory.faker.Faker("pyint")
     is_accepted = factory.faker.Faker("pybool")
     service = factory.SubFactory(ServiceFactory)
+    is_completed = factory.faker.Faker("pybool")
 
 
 @pytest.fixture
@@ -26,7 +27,7 @@ def api_client():
     return APIClient
 
 
-class TestService:
+class TestResponse:
     endpoint = '/response'
 
     def test_list(self, api_client, authorize):
@@ -48,6 +49,7 @@ class TestService:
             'id': response_.id,
             'is_accepted': response_.is_accepted,
             'request': response_.request.id,
+            'is_completed': response_.is_completed,
         }
         url = f'{self.endpoint}/{response_.id}'
 
@@ -65,6 +67,7 @@ class TestService:
             'id': response_.id + 1,
             'is_accepted': response_.is_accepted,
             'request': response_.request.id,
+            'is_completed': response_.is_completed,
         }
 
         response = api_client().post(
@@ -81,11 +84,14 @@ class TestService:
         response_ = ResponseFactory()
         response_dict = {
             'service': response_.service.name,
-            'id': response_.id + 1,
+            'id': response_.id,
             'is_accepted': response_.is_accepted,
             'request': response_.request.id,
+            'is_completed': response_.is_completed,
         }
         url = f'{self.endpoint}/{response_.id}'
+        if response_.service in response_.request.accepted_list.all():
+            response_dict['is_completed'] = False
 
         response = api_client().put(
             url,
@@ -145,6 +151,7 @@ class TestService:
             'id': response_.id,
             'is_accepted': response_.is_accepted,
             'request': response_.request.id,
+            'is_completed': response_.is_accepted,
         }
         response = api_client().post(self.endpoint, expected_json)
 

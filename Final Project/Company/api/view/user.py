@@ -25,7 +25,7 @@ class UserDetails(viewsets.GenericViewSet):
         return queryset
 
     def retrieve(self, request, pk=None):
-        user = get_object_or_404(self.queryset, pk=pk)
+        user = get_object_or_404(self.filter_queryset(self.queryset), pk=pk)
         serializer = UserSerializer_(user)
         if user.role.role == "user":
             serializer.fields.pop("company_rating")
@@ -59,7 +59,7 @@ class UserDetails(viewsets.GenericViewSet):
 
     def list(self, request):
         lst = []
-        users = User.objects.all()
+        users = self.filter_queryset(self.queryset)
         for user in users:
             serializer = UserSerializer_(user)
             if user.role.role == "user":

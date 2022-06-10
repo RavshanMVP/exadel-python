@@ -10,13 +10,12 @@ from . import UserFactory, ServiceFactory, RequestFactory
 from . import authorize
 pytestmark = pytest.mark.django_db
 
-
 class ReviewFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Review
     service = factory.SubFactory(ServiceFactory)
     request = factory.SubFactory(RequestFactory)
-    created_at = timezone.now()
+    created_at = factory.Faker("date_time", tzinfo=timezone.get_current_timezone())
     user = factory.SubFactory(UserFactory)
     feedback = factory.faker.Faker("job")
     rating = factory.faker.Faker("pyint", min_value=1, max_value=5)

@@ -22,6 +22,9 @@ def notify(self):
 @shared_task(bind=True)
 def send_notification(self, service_name, recipient, company_name, user_name, address, cost_total, category, email,
                       phone):
+
+    print("Sent")
+
     send_mail(
         recipient_list=[recipient],
         subject=service_name,
@@ -98,16 +101,3 @@ def confirm(self, company_name, service_name, user_name, email):
     )
 
     return "Sent"
-
-@shared_task(bind=True)
-def change_status(self, request):
-    time_change = datetime.timedelta(minutes=int(request.minutes))
-    new_time = request.created_at + time_change
-    print(new_time)
-    print(request.minutes)
-    now = timezone.now()
-    while now < new_time:
-        now = timezone.now()
-    request.status = RequestStatus.objects.get(status="Completed")
-    request.save()
-    return "Changed"

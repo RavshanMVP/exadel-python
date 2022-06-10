@@ -14,7 +14,7 @@ class Request(models.Model):
 
     service_list = models.ManyToManyField(service.Service, related_name="service_list", default=[])
     final_service = models.ForeignKey(service.Service, on_delete=models.CASCADE, null=True)
-    status = models.ForeignKey(request_status.RequestStatus, on_delete=models.CASCADE)
+    status = models.ForeignKey(request_status.RequestStatus, on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(user.User, on_delete=models.CASCADE)
     accepted_list = models.ManyToManyField(service.Service, related_name="accepted_list", default=[],
                                            verbose_name="List of services who accepted user's order")
