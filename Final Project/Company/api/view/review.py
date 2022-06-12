@@ -32,12 +32,12 @@ class ReviewDetails(viewsets.GenericViewSet):
     def delete(self, request, pk, format=None):
         review = get_object_or_404(self.queryset, pk=pk)
         data = request.data
-        service = Service.objects.get(name=data['service'])
+        service = Service.objects.get(name=review.request.final_service.name)
 
         old_rating = float(service.company.company_rating) * int(service.company.ratings_count)
         deleted_rating = review.rating
         service.company.ratings_count -= 1
-        new_rating = (old_rating - deleted_rating) / int(service.company.ratings_count)
+        new_rating = (old_rating - deleted_rating) / float(service.company.ratings_count)
         service.company.company_rating = new_rating
         service.company.save()
 
