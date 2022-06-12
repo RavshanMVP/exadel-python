@@ -149,8 +149,8 @@ class RequestDetails(viewsets.GenericViewSet):
 
         if filter == str(True):
             services = Service.objects.filter(company__role__role="Comp", category__category=data["search_category"],
-                                              cost__lte=float(model.max_cost),
-                                              company__company_rating__gte=model.min_rating,
+                                              cost__lte=float(data["max_cost"]),
+                                              company__company_rating__gte=data["min_rating"],
                                               company__city=data["city"], company__country=data["country"])
             for service in services:
                 model.service_list.add(service)

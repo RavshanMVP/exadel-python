@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.utils import timezone
+from django.http import HttpResponse
 
 from api.serializers import ReviewSerializer
 from core.models import Review, User, Request, Service, RequestStatus
@@ -69,7 +69,11 @@ class ReviewDetails(viewsets.GenericViewSet):
 
     def post(self, request):
         data = request.data
-        request = Request.objects.get(id=data['request'], status=RequestStatus.objects.get(status="Completed"))
+        try:
+            request = Request.objects.get(id=data['request'], status=RequestStatus.objects.get(status="Completed"))
+
+        except:
+            return HttpResponse("Service is not completed yet. You cannot leave a review")
         user = User.objects.get(fullname=request.user.fullname)
         service = Service.objects.get(name=request.final_service.name)
 

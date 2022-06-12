@@ -5,7 +5,7 @@ import pytest
 from rest_framework.test import APIClient
 from django.utils import timezone
 
-from core.models import Review
+from core.models import Review, RequestStatus
 from . import UserFactory, ServiceFactory, RequestFactory
 from . import authorize
 pytestmark = pytest.mark.django_db
@@ -84,14 +84,10 @@ class TestReview:
             self.endpoint,
             data=expected_json,
             format='json',
-            HTTP_AUTHORIZATION=authorize
-        )
-
-        json_response = json.loads(response.content)
-        json_response["created_at"] = expected_json["created_at"]
+            HTTP_AUTHORIZATION=authorize)
 
         assert response.status_code == 200
-        assert json_response  == expected_json
+        assert response.content == b"Service is not completed yet. You cannot leave a review"
 
     def test_put(self, api_client, authorize):
         review = ReviewFactory()
@@ -116,6 +112,7 @@ class TestReview:
 
         json_response = json.loads(response.content)
         json_response["created_at"] = review_dict["created_at"]
+
         assert response.status_code == 200
         assert json_response == review_dict
 
