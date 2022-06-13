@@ -15,7 +15,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
-from api.view import RequestDetails, ServiceDetails, UserDetails, RoleDetails, ReviewDetails, RequestStatusDetails, CategoryDetails
+from api.view import RequestDetails, ServiceDetails, UserDetails, RoleDetails, ReviewDetails,\
+                     RequestStatusDetails, CategoryDetails, ResponseDetails
 from djoser import urls
 from djoser.urls import jwt
 from rest_framework import permissions
@@ -38,57 +39,52 @@ schema_view = get_schema_view(
 urlpatterns = [
 
     # request urls
-    path("request/<pk>", RequestDetails.as_view({'get':'retrieve','delete':'delete','put':'put'})),
-    path("requests/list/", RequestDetails.as_view({'get':'list'})),
-    path("requests/create/", RequestDetails.as_view({'post':'post'})),
+    path("request/<pk>", RequestDetails.as_view({'get': 'retrieve', 'delete': 'delete', 'put': 'put'})),
+    path("requests/list/", RequestDetails.as_view({'get': 'list'})),
+    path("requests/create/", RequestDetails.as_view({'post': 'post'})),
 
-# request status urls
-    path("status/<pk>", RequestStatusDetails.as_view({'get':'retrieve'})),
-    path("statuses/list/", RequestStatusDetails.as_view({'get' :'list'})),
+    path("response/<pk>", ResponseDetails.as_view({'get': 'retrieve', 'delete': 'delete', 'put': 'put'})),
+    path("responses/list/", ResponseDetails.as_view({'get': 'list'})),
+    path("responses/create/", ResponseDetails.as_view({'post': 'post'})),
 
-# review urls
-    path("review/<pk>", ReviewDetails.as_view({'get':'retrieve','delete':'delete','put':'put'})),
-    path("reviews/list/", ReviewDetails.as_view({'get':'list'})),
+    # request status urls
+    path("status/<pk>", RequestStatusDetails.as_view({'get': 'retrieve'})),
+    path("statuses/list/", RequestStatusDetails.as_view({'get': 'list'})),
+
+    # review urls
+    path("review/<pk>", ReviewDetails.as_view({'get': 'retrieve', 'delete': 'delete', 'put': 'put'})),
+    path("reviews/list/", ReviewDetails.as_view({'get': 'list'})),
     path("reviews/create/", ReviewDetails.as_view({'post': 'post'})),
 
     # role urls
-    path("role/<pk>", RoleDetails.as_view({'get':'retrieve'})),
-    path("roles/list/", RoleDetails.as_view({'get':'list'})),
+    path("role/<pk>", RoleDetails.as_view({'get': 'retrieve'})),
+    path("roles/list/", RoleDetails.as_view({'get': 'list'})),
 
     # service urls
-    path("service/<pk>", ServiceDetails.as_view({'get':'retrieve','delete':'delete','put':'put'})),
-    path("services/list/", ServiceDetails.as_view({'get':'list'})),
+    path("service/<pk>", ServiceDetails.as_view({'get': 'retrieve', 'delete': 'delete', 'put': 'put'})),
+    path("services/list/", ServiceDetails.as_view({'get': 'list'})),
     path("services/create/", ServiceDetails.as_view({'post': 'post'})),
 
     # category urls
-    path("category/<pk>", CategoryDetails.as_view({'get':'retrieve','delete':'delete','put':'put'})),
-    path("categories/list/", CategoryDetails.as_view({'get':'list'})),
+    path("category/<pk>", CategoryDetails.as_view({'get': 'retrieve', 'delete': 'delete', 'put': 'put'})),
+    path("categories/list/", CategoryDetails.as_view({'get': 'list'})),
     path("categories/create/", CategoryDetails.as_view({'post': 'post'})),
 
-    #user urls
-    path("user/<pk>", UserDetails.as_view({'get':'retrieve','delete':'delete','put':'put',})),
-    path("users/list/", UserDetails.as_view({'get':'list'})),
-    path("users/create/", UserDetails.as_view({ 'post': 'post'})),
+    # user urls
+    path("user/<pk>", UserDetails.as_view({'get': 'retrieve', 'delete': 'delete', 'put': 'put'})),
+    path("users/list/", UserDetails.as_view({'get': 'list'})),
+    path("users/create/", UserDetails.as_view({'post': 'post'})),
 
-    #for authorization
+    # for authorization
     path(r'auth/', include(urls)),
     path(r'auth/', include(jwt)),
 
     path('__debug__/', include('debug_toolbar.urls')),
 
     # swagger
-   re_path(r'swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-   re_path(r'redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    re_path(r'swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
-
+    path("admin/", admin.site.urls),
 
 ]
-
-
-
-
-
-
-
-
-
