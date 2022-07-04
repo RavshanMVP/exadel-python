@@ -14,7 +14,7 @@ from final_project.tasks.tasks import send_notification, confirm
 
 
 class RequestDetails(viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     queryset = Request.objects.select_related('user', 'final_service', 'status') \
         .prefetch_related('accepted_list__category', 'service_list__category',
                           'accepted_list__company', 'service_list__company').order_by("-created_at")
